@@ -45,6 +45,11 @@
   box-sizing: border-box;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -1416,6 +1421,28 @@ body.mode-preview .block-palette-bar {
   background-color: #161f33;
   border-color: #27344c;
   color: #94a3b8;
+}
+
+@media (max-width: 576px) {
+  .editor-header {
+    padding: 0.45rem 0.65rem;
+  }
+  .editor-nav {
+    gap: 0.4rem;
+  }
+  .brand-title {
+    font-size: 0.95rem;
+    gap: 0.35rem;
+  }
+  .reading-indicator {
+    font-size: 0.72rem;
+    padding: 0.18rem 0.45rem;
+    max-width: 100%;
+    line-height: 1.2;
+  }
+  .nav-actions {
+    gap: 0.3rem;
+  }
 }
 
 /* Social Card Live Preview */
