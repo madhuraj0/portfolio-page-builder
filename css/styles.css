@@ -1324,3 +1324,74 @@ body.mode-preview .block-palette-bar {
   background-color: #161f33 !important;
   border-color: #27344c !important;
 }
+
+/* Reading Time & Word Count Badge */
+.reading-indicator {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #64748b;
+  background-color: #f1f5f9;
+  padding: 0.28rem 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+[data-theme-mode="dark"] .reading-indicator {
+  background-color: #161f33;
+  border-color: #27344c;
+  color: #94a3b8;
+}
+
+/* Social Card Live Preview */
+.social-card-preview {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+.social-card-preview .social-card-image-wrap {
+  width: 100%;
+  height: 160px;
+  background-color: #e2e8f0;
+  position: relative;
+}
+.social-card-preview .social-card-content {
+  padding: 0.85rem 1rem;
+}
+.social-card-preview .social-card-domain {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+.social-card-preview .social-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+}
+.social-card-preview .social-card-desc {
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+[data-theme-mode="dark"] .social-card-preview {
+  background-color: #111827;
+  border-color: #27344c;
+}
+[data-theme-mode="dark"] .social-card-preview .social-card-image-wrap {
+  background-color: #1a2333;
+}
+[data-theme-mode="dark"] .social-card-preview .social-card-title {
+  color: #f8fafc;
+}
+[data-theme-mode="dark"] .social-card-preview .social-card-desc {
+  color: #94a3b8;
+}
+[data-theme-mode="dark"] .social-card-preview .social-card-domain {
+  color: #64748b;
+}
+

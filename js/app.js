@@ -237,7 +237,10 @@
 
   // --- Application State ---
   let state = {
-    title: 'Visual Story Portfolio',
+    title: 'The Silent Fjords of the North',
+    author: 'Alex Bennett',
+    description: 'An expedition documenting the vanishing glaciers and quiet resilience of Arctic communities.',
+    ogImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
     typography: 'classic',
     colorMode: 'light',
     accentColor: '#2563eb',
@@ -404,13 +407,78 @@
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        state = JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        state = {
+          title: parsed.title || 'The Silent Fjords of the North',
+          author: parsed.author || 'Alex Bennett',
+          description: parsed.description || 'An expedition documenting the vanishing glaciers and quiet resilience of Arctic communities.',
+          ogImage: parsed.ogImage || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+          typography: parsed.typography || 'classic',
+          colorMode: parsed.colorMode || 'light',
+          accentColor: parsed.accentColor || '#2563eb',
+          customTypography: parsed.customTypography || {
+            headingFont: 'Playfair Display',
+            bodyFont: 'Roboto',
+            baseScale: '100'
+          },
+          blocks: parsed.blocks || []
+        };
         return true;
       }
     } catch (e) {
       console.warn('Failed reading draft', e);
     }
     return false;
+  }
+
+  function calculateStoryStats() {
+    let totalWords = 0;
+    if (!state.blocks || !Array.isArray(state.blocks)) return { words: 0, readTimeMinutes: 0 };
+
+    state.blocks.forEach(block => {
+      if (!block.data) return;
+      Object.entries(block.data).forEach(([key, val]) => {
+        if (typeof val !== 'string') return;
+        const lowerKey = key.toLowerCase();
+        if (
+          lowerKey.includes('url') ||
+          lowerKey.includes('src') ||
+          lowerKey.includes('color') ||
+          lowerKey.includes('font') ||
+          lowerKey.includes('style') ||
+          lowerKey.includes('opacity') ||
+          lowerKey.includes('position') ||
+          lowerKey.includes('align') ||
+          lowerKey.includes('level') ||
+          lowerKey.includes('size')
+        ) {
+          return;
+        }
+        const cleaned = val
+          .replace(/https?:\/\/[^\s)]+/g, '')
+          .replace(/[*_#`~\[\]()|]/g, ' ')
+          .trim();
+        if (cleaned) {
+          const words = cleaned.split(/\s+/).filter(w => w.length > 0 && !/^https?:\/\//i.test(w));
+          totalWords += words.length;
+        }
+      });
+    });
+
+    const readTimeMinutes = totalWords === 0 ? 0 : Math.max(1, Math.ceil(totalWords / 200));
+    return { words: totalWords, readTimeMinutes };
+  }
+
+  function updateReadingStats() {
+    const { words, readTimeMinutes } = calculateStoryStats();
+    const wordEl = document.getElementById('storyWordCount');
+    const readEl = document.getElementById('storyReadTime');
+    if (wordEl) {
+      wordEl.textContent = `${words.toLocaleString()} ${words === 1 ? 'word' : 'words'}`;
+    }
+    if (readEl) {
+      readEl.textContent = `${readTimeMinutes} min read`;
+    }
   }
 
   function updateUndoRedoUI() {
@@ -835,6 +903,7 @@
         renderCanvas();
         showToast('Sample story loaded!');
       });
+      updateReadingStats();
       return;
     }
 
@@ -883,6 +952,8 @@
         handleBlockAction(action, block.id, index);
       });
     });
+
+    updateReadingStats();
   }
 
   // --- Block Actions Handler ---
@@ -931,6 +1002,7 @@
   // --- Modal Form Editor ---
   let blockModalInstance = null;
   let customTypographyModalInstance = null;
+  let storySettingsModalInstance = null;
 
   function initModal() {
     const modalEl = document.getElementById('blockEditModal');
@@ -940,6 +1012,10 @@
     const customTypeModalEl = document.getElementById('customTypographyModal');
     if (customTypeModalEl && window.bootstrap) {
       customTypographyModalInstance = new bootstrap.Modal(customTypeModalEl);
+    }
+    const storyModalEl = document.getElementById('storySettingsModal');
+    if (storyModalEl && window.bootstrap) {
+      storySettingsModalInstance = new bootstrap.Modal(storyModalEl);
     }
   }
 
@@ -1666,13 +1742,32 @@ ${blocksHtml}
     const theme = resolveActiveTheme();
     const accent = state.accentColor || '#2563eb';
     const mode = state.colorMode || 'light';
+    const title = escapeHTML(state.title || 'Portfolio Story');
+    const desc = escapeHTML(state.description || '');
+    const author = escapeHTML(state.author || '');
+    const ogImage = state.ogImage ? escapeHTML(state.ogImage) : '';
     const content = state.blocks.map(b => renderBlockHTML(b)).join('\n');
     return `<!DOCTYPE html>
 <html lang="en" data-theme-mode="${mode}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHTML(state.title || 'Portfolio Story')}</title>
+  <title>${title}</title>
+  ${desc ? `<meta name="description" content="${desc}">` : ''}
+  ${author ? `<meta name="author" content="${author}">` : ''}
+
+  <!-- Open Graph / Facebook / LinkedIn -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="${title}">
+  ${desc ? `<meta property="og:description" content="${desc}">` : ''}
+  ${ogImage ? `<meta property="og:image" content="${ogImage}">` : ''}
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${title}">
+  ${desc ? `<meta name="twitter:description" content="${desc}">` : ''}
+  ${ogImage ? `<meta name="twitter:image" content="${ogImage}">` : ''}
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="${theme.googleFontsUrl}" rel="stylesheet">
@@ -2409,6 +2504,138 @@ ${content}
       }
     });
 
+    // --- Story Settings & Social Share SEO Modal ---
+    function updateSocialCardPreview() {
+      const inputTitle = document.getElementById('settingStoryTitle');
+      const inputAuthor = document.getElementById('settingStoryAuthor');
+      const inputDesc = document.getElementById('settingStoryDesc');
+      const inputImage = document.getElementById('settingStoryImage');
+
+      const titleVal = inputTitle?.value.trim() || state.title || 'The Silent Fjords of the North';
+      const authorVal = inputAuthor?.value.trim() || state.author || 'Author';
+      const descVal = inputDesc?.value.trim() || state.description || 'An expedition documenting vanishing glaciers and Arctic communities.';
+      const imageVal = inputImage?.value.trim() || state.ogImage || '';
+
+      const previewTitle = document.getElementById('socialPreviewTitle');
+      const previewAuthor = document.getElementById('socialPreviewAuthor');
+      const previewDesc = document.getElementById('socialPreviewDesc');
+      const previewImage = document.getElementById('socialPreviewImage');
+      const previewFallback = document.getElementById('socialPreviewFallback');
+      const charCountEl = document.getElementById('storyDescCharCount');
+
+      if (previewTitle) previewTitle.textContent = titleVal;
+      if (previewAuthor) previewAuthor.textContent = authorVal;
+      if (previewDesc) previewDesc.textContent = descVal;
+
+      if (charCountEl) {
+        const len = (inputDesc?.value || '').length;
+        charCountEl.textContent = `${len} chars`;
+        if (len > 160) {
+          charCountEl.className = 'text-warning small fw-semibold';
+        } else {
+          charCountEl.className = 'text-muted small';
+        }
+      }
+
+      if (previewImage && previewFallback) {
+        if (imageVal) {
+          previewImage.src = imageVal;
+          previewImage.style.display = 'block';
+          previewImage.style.opacity = '1';
+          previewFallback.style.setProperty('display', 'none', 'important');
+        } else {
+          previewImage.src = '';
+          previewImage.style.display = 'none';
+          previewFallback.style.setProperty('display', 'flex', 'important');
+        }
+      }
+    }
+
+    function openStorySettingsModal() {
+      const inputTitle = document.getElementById('settingStoryTitle');
+      const inputAuthor = document.getElementById('settingStoryAuthor');
+      const inputDesc = document.getElementById('settingStoryDesc');
+      const inputImage = document.getElementById('settingStoryImage');
+
+      if (inputTitle) inputTitle.value = state.title || '';
+      if (inputAuthor) inputAuthor.value = state.author || '';
+      if (inputDesc) inputDesc.value = state.description || '';
+      if (inputImage) inputImage.value = state.ogImage || '';
+
+      updateSocialCardPreview();
+      storySettingsModalInstance?.show();
+    }
+
+    function autoDetectStorySettings() {
+      if (!state.blocks || state.blocks.length === 0) {
+        showToast('Canvas is empty, nothing to detect', 'info-circle');
+        return;
+      }
+
+      let detectedTitle = '';
+      let detectedAuthor = '';
+      let detectedDesc = '';
+      let detectedImage = '';
+
+      for (const block of state.blocks) {
+        const d = block.data || {};
+        if (!detectedTitle) {
+          if (block.type === 'cover' && d.title) detectedTitle = d.title;
+          else if (block.type === 'heading' && d.text) detectedTitle = d.text;
+        }
+        if (!detectedAuthor) {
+          if (block.type === 'cover' && d.byline) {
+            detectedAuthor = d.byline.replace(/^by\s+/i, '').trim();
+          } else if (block.type === 'authorBio' && d.name) {
+            detectedAuthor = d.name;
+          }
+        }
+        if (!detectedDesc) {
+          if (block.type === 'cover' && d.tagline) {
+            detectedDesc = d.tagline;
+          } else if (block.type === 'text' && d.text) {
+            const cleanText = d.text.replace(/[*_#`~\[\]()]/g, ' ').replace(/\s+/g, ' ').trim();
+            detectedDesc = cleanText.length > 160 ? cleanText.substring(0, 157) + '...' : cleanText;
+          }
+        }
+        if (!detectedImage) {
+          if (d.imageUrl) detectedImage = d.imageUrl;
+          else if (d.img1Url) detectedImage = d.img1Url;
+        }
+      }
+
+      const inputTitle = document.getElementById('settingStoryTitle');
+      const inputAuthor = document.getElementById('settingStoryAuthor');
+      const inputDesc = document.getElementById('settingStoryDesc');
+      const inputImage = document.getElementById('settingStoryImage');
+
+      if (detectedTitle && inputTitle) inputTitle.value = detectedTitle;
+      if (detectedAuthor && inputAuthor) inputAuthor.value = detectedAuthor;
+      if (detectedDesc && inputDesc) inputDesc.value = detectedDesc;
+      if (detectedImage && inputImage) inputImage.value = detectedImage;
+
+      updateSocialCardPreview();
+      showToast('Detected story metadata from blocks!', 'wand-magic-sparkles');
+    }
+
+    document.getElementById('btnOpenStorySettings')?.addEventListener('click', openStorySettingsModal);
+    document.getElementById('btnAutoDetectSettings')?.addEventListener('click', autoDetectStorySettings);
+
+    ['settingStoryTitle', 'settingStoryAuthor', 'settingStoryDesc', 'settingStoryImage'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', updateSocialCardPreview);
+    });
+
+    document.getElementById('btnSaveStorySettings')?.addEventListener('click', () => {
+      saveState();
+      state.title = document.getElementById('settingStoryTitle')?.value.trim() || 'The Silent Fjords of the North';
+      state.author = document.getElementById('settingStoryAuthor')?.value.trim() || '';
+      state.description = document.getElementById('settingStoryDesc')?.value.trim() || '';
+      state.ogImage = document.getElementById('settingStoryImage')?.value.trim() || '';
+
+      storySettingsModalInstance?.hide();
+      showToast('Story settings & SEO metadata saved', 'gear');
+    });
+
     // Export Dropdown actions
     document.getElementById('btnCopyFullHTML')?.addEventListener('click', () => {
       const html = generateFullStandaloneHTML();
@@ -2417,7 +2644,11 @@ ${content}
 
     document.getElementById('btnDownloadFullHTML')?.addEventListener('click', () => {
       const html = generateFullStandaloneHTML();
-      downloadFile('story-page.html', html, 'text/html');
+      const slug = (state.title || 'story-page')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'story-page';
+      downloadFile(`${slug}.html`, html, 'text/html');
     });
 
     document.getElementById('btnCopySnippetHTML')?.addEventListener('click', () => {

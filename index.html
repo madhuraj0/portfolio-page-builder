@@ -31,6 +31,14 @@
           <span>StoryBuilder</span>
         </h1>
         <span class="brand-badge">Portfolio</span>
+
+        <!-- Reading Time & Word Count Badge -->
+        <div class="reading-indicator d-none d-lg-flex align-items-center gap-2" id="readingIndicatorBadge" title="Estimated Reading Time & Word Count">
+          <i class="fas fa-book-open text-primary"></i>
+          <span id="storyWordCount">0 words</span>
+          <span class="text-muted">&middot;</span>
+          <span id="storyReadTime">0 min read</span>
+        </div>
       </div>
 
       <!-- Center: Viewport Switcher -->
@@ -157,6 +165,11 @@
         <!-- Color Mode Toggle (Light / Dark) -->
         <button type="button" class="btn btn-sm btn-outline-secondary" id="btnToggleColorMode" title="Toggle Light / Dark Mode">
           <i class="fas fa-moon"></i>
+        </button>
+
+        <!-- Story Info / SEO Settings -->
+        <button type="button" class="btn btn-sm btn-outline-secondary edit-only" id="btnOpenStorySettings" title="Story Settings & Social Share SEO">
+          <i class="fas fa-gear me-1"></i> Story Info
         </button>
 
         <!-- Mode Toggle (Edit / Preview) -->
@@ -384,6 +397,98 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
           <button type="button" class="btn btn-primary" id="btnSaveCustomTypography">Apply Typography</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Story Settings & Social Share SEO -->
+  <div class="modal fade" id="storySettingsModal" tabindex="-1" aria-labelledby="storySettingsModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="storySettingsModalTitle">
+            <i class="fas fa-gear me-2 text-primary"></i> Story Settings & SEO
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted small">Configure metadata, search indexing, and social share cards.</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnAutoDetectSettings" title="Extract title, author, description, and image from current story blocks">
+              <i class="fas fa-wand-magic-sparkles me-1 text-primary"></i> Auto-Detect from Blocks
+            </button>
+          </div>
+
+          <div class="row g-3">
+            <!-- Left Column: Form Fields -->
+            <div class="col-lg-7">
+              <div class="mb-3">
+                <label class="form-label fw-semibold" for="settingStoryTitle">Story Title</label>
+                <input type="text" class="form-control" id="settingStoryTitle" placeholder="e.g. The Silent Fjords of the North">
+                <div class="form-text">Used for the browser tab title and OpenGraph / Twitter cards.</div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold" for="settingStoryAuthor">Author / Creator</label>
+                <input type="text" class="form-control" id="settingStoryAuthor" placeholder="e.g. Alex Bennett">
+                <div class="form-text">Author metadata included in search indexes and social shares.</div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold" for="settingStoryDesc">Story Excerpt & SEO Description</label>
+                <textarea class="form-control" id="settingStoryDesc" rows="3" placeholder="Brief summary for search snippets and social cards (150-160 characters recommended)..."></textarea>
+                <div class="form-text d-flex justify-content-between">
+                  <span>Used for meta description and social card previews.</span>
+                  <span class="text-muted small" id="storyDescCharCount">0 chars</span>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold" for="settingStoryImage">Social Share Image URL (OG Image)</label>
+                <input type="url" class="form-control" id="settingStoryImage" placeholder="https://images.unsplash.com/photo-...">
+                <div class="form-text">Preview banner image shown when shared on Twitter, LinkedIn, Slack, etc.</div>
+              </div>
+            </div>
+
+            <!-- Right Column: Live Social Card Preview -->
+            <div class="col-lg-5">
+              <div class="text-uppercase small fw-bold text-muted mb-2">
+                <i class="fas fa-share-nodes me-1 text-primary"></i> Live Social Card Preview
+              </div>
+              <div class="social-card-preview shadow-sm">
+                <div class="social-card-image-wrap" style="position: relative; height: 160px; background: #e2e8f0; overflow: hidden;">
+                  <img id="socialPreviewImage" src="" alt="Social Share Preview" class="w-100 h-100" style="object-fit: cover; display: block;" onerror="this.style.opacity='0'; const fb = document.getElementById('socialPreviewFallback'); if (fb) fb.style.setProperty('display', 'flex', 'important');">
+                  <div id="socialPreviewFallback" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-muted" style="display: none !important;">
+                    <i class="fas fa-image fa-2x mb-1 opacity-50"></i>
+                    <span class="small">No preview image</span>
+                  </div>
+                </div>
+                <div class="social-card-content p-3">
+                  <div class="social-card-domain text-muted small text-uppercase mb-1">
+                    <i class="fas fa-globe me-1"></i> storybuilder.app &middot; <span id="socialPreviewAuthor">Alex Bennett</span>
+                  </div>
+                  <div class="social-card-title fw-bold mb-1" id="socialPreviewTitle">
+                    The Silent Fjords of the North
+                  </div>
+                  <div class="social-card-desc text-secondary small" id="socialPreviewDesc">
+                    An expedition documenting the vanishing glaciers and quiet resilience of Arctic communities.
+                  </div>
+                </div>
+              </div>
+
+              <div class="alert alert-light border mt-3 py-2 px-3 small text-muted">
+                <i class="fas fa-circle-info text-primary me-1"></i>
+                Exported HTML files will automatically embed OpenGraph, Twitter, and SEO tags.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSaveStorySettings">
+            <i class="fas fa-check me-1"></i> Save Story Settings
+          </button>
         </div>
       </div>
     </div>
