@@ -204,6 +204,40 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   Typography Themes & Presets
+   -------------------------------------------------------------------------- */
+.story-canvas, .story-snippet {
+  --story-font-heading: 'Playfair Display', Georgia, serif;
+  --story-font-body: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--story-font-body);
+}
+
+.story-canvas[data-theme="classic"], .story-snippet[data-theme="classic"] {
+  --story-font-heading: 'Playfair Display', Georgia, serif;
+  --story-font-body: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.story-canvas[data-theme="modern"], .story-snippet[data-theme="modern"] {
+  --story-font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --story-font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.story-canvas[data-theme="literary"], .story-snippet[data-theme="literary"] {
+  --story-font-heading: 'Lora', Georgia, serif;
+  --story-font-body: 'Merriweather', Georgia, serif;
+}
+
+.story-canvas[data-theme="creative"], .story-snippet[data-theme="creative"] {
+  --story-font-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --story-font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.story-canvas[data-theme="minimal-mono"], .story-snippet[data-theme="minimal-mono"] {
+  --story-font-heading: 'JetBrains Mono', monospace;
+  --story-font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* --------------------------------------------------------------------------
    Story Block Styles (The Published Content Layout)
    -------------------------------------------------------------------------- */
 .story-block {
@@ -297,7 +331,7 @@ body.mode-preview .block-palette-bar {
 }
 
 .story-cover-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--story-font-heading);
   font-size: clamp(2.2rem, 5vw, 4rem);
   font-weight: 700;
   line-height: 1.15;
@@ -335,7 +369,7 @@ body.mode-preview .block-palette-bar {
 }
 
 .story-heading {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--story-font-heading);
   font-size: clamp(1.85rem, 3.5vw, 2.75rem);
   font-weight: 700;
   color: #0f172a;
@@ -414,7 +448,7 @@ body.mode-preview .block-palette-bar {
 }
 
 .story-quote-text {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--story-font-heading);
   font-size: 1.5rem;
   font-style: italic;
   line-height: 1.5;
@@ -595,7 +629,7 @@ body.mode-preview .block-palette-bar {
 }
 
 .split-content h3 {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--story-font-heading);
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 1rem;
@@ -642,7 +676,7 @@ body.mode-preview .block-palette-bar {
 }
 
 .stat-number {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--story-font-heading);
   font-size: clamp(2.5rem, 4.5vw, 3.75rem);
   font-weight: 700;
   color: var(--primary-color);
@@ -857,7 +891,7 @@ body.mode-preview .block-palette-bar {
 }
 
 .author-name {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--story-font-heading);
   font-size: 1.45rem;
   font-weight: 700;
   color: #0f172a;
@@ -931,7 +965,7 @@ body.mode-preview .block-palette-bar {
 }
 
 .cta-heading {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--story-font-heading);
   font-size: clamp(1.75rem, 3vw, 2.35rem);
   font-weight: 700;
   margin-bottom: 0.75rem;

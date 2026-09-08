@@ -38,6 +38,12 @@ Built with vanilla JavaScript, modern CSS, and Bootstrap 5. Works immediately wi
 
 ## 🛠️ Editor Features
 
+- **Curated Typography Themes**:
+  - **Editorial Classic**: *Playfair Display* (Headings) + *Roboto* (Body)
+  - **Modern Studio**: *Plus Jakarta Sans* (Headings) + *Inter* (Body)
+  - **Literary Book**: *Lora* (Headings) + *Merriweather* (Body)
+  - **Creative Avant-Garde**: *Space Grotesk* (Headings) + *DM Sans* (Body)
+  - **Minimal Mono**: *JetBrains Mono* (Headings) + *Inter* (Body)
 - **Modal Form Editing**: Zero intrusive browser prompts. Dedicated input fields, sliders, and live options.
 - **Block Controls**: Move Up, Move Down, Edit, Duplicate, and Delete any block with one click.
 - **History (Undo / Redo)**: Full keyboard shortcut support (`Ctrl+Z` / `Ctrl+Y`).
@@ -45,9 +51,10 @@ Built with vanilla JavaScript, modern CSS, and Bootstrap 5. Works immediately wi
 - **Preview vs. Edit Mode**: Experience the final article cleanly without builder controls.
 - **Auto-Save**: Changes automatically save to browser `localStorage`.
 - **Clean HTML & JSON Exports**:
-  - **Copy Full Page HTML**: Copy complete standalone HTML to clipboard.
-  - **Download as .html File**: Download `story-page.html` ready to double-click and open.
-  - **Copy Article Snippet (CMS)**: Copy clean inner markup for WordPress, Ghost, Substack, or Medium.
+  - **Copy Full Page HTML**: Complete standalone HTML with custom typography bundled.
+  - **Download as .html File**: Download `story-page.html` ready to host or open.
+  - **Copy Snippet (Self-Contained Fonts)**: Includes scoped `@import` so custom fonts render everywhere (WordPress, Ghost, Substack, Medium).
+  - **Copy Snippet (Inherit Blog Fonts)**: Clean markup without external fonts that seamlessly blends into your existing blog typography.
   - **Save / Open Project (JSON)**: Re-open and edit projects anytime.
 - **Built-in XSS Protection**: All user inputs and embedded URLs are safely sanitized.
 

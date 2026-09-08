@@ -30,6 +30,40 @@
     return escapeHTML(trimmed);
   }
 
+  // --- Curated Typography Themes ---
+  const TYPOGRAPHY_THEMES = {
+    classic: {
+      name: 'Editorial Classic',
+      fontHeading: "'Playfair Display', Georgia, serif",
+      fontBody: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap'
+    },
+    modern: {
+      name: 'Modern Studio',
+      fontHeading: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontBody: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap'
+    },
+    literary: {
+      name: 'Literary Book',
+      fontHeading: "'Lora', Georgia, serif",
+      fontBody: "'Merriweather', Georgia, serif",
+      googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap'
+    },
+    creative: {
+      name: 'Creative Avant-Garde',
+      fontHeading: "'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontBody: "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      googleFontsUrl: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap'
+    },
+    'minimal-mono': {
+      name: 'Minimal Mono',
+      fontHeading: "'JetBrains Mono', monospace",
+      fontBody: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@500;700&display=swap'
+    }
+  };
+
   // --- Sample Story State ---
   const SAMPLE_STORY = [
     {
@@ -180,12 +214,35 @@
   // --- Application State ---
   let state = {
     title: 'Visual Story Portfolio',
+    typography: 'classic',
     blocks: []
   };
 
   const undoStack = [];
   const redoStack = [];
   const STORAGE_KEY = 'portfolio_builder_draft_v3';
+
+  function applyTypography(themeKey, recordHistory = false) {
+    if (!TYPOGRAPHY_THEMES[themeKey]) themeKey = 'classic';
+    if (recordHistory) {
+      saveState();
+    }
+    state.typography = themeKey;
+    const canvas = document.getElementById('storyCanvas');
+    if (canvas) {
+      canvas.dataset.theme = themeKey;
+    }
+    const label = document.getElementById('currentTypographyLabel');
+    if (label && TYPOGRAPHY_THEMES[themeKey]) {
+      label.textContent = TYPOGRAPHY_THEMES[themeKey].name;
+    }
+    document.querySelectorAll('[data-typography]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.typography === themeKey);
+    });
+    if (recordHistory) {
+      showToast(`Typography set to ${TYPOGRAPHY_THEMES[themeKey].name}`, 'font');
+    }
+  }
 
   function saveState(recordHistory = true) {
     if (recordHistory) {
@@ -225,6 +282,7 @@
     if (undoStack.length === 0) return;
     redoStack.push(JSON.stringify(state));
     state = JSON.parse(undoStack.pop());
+    applyTypography(state.typography || 'classic', false);
     renderCanvas();
     updateUndoRedoUI();
     showToast('Action undone');
@@ -234,6 +292,7 @@
     if (redoStack.length === 0) return;
     undoStack.push(JSON.stringify(state));
     state = JSON.parse(redoStack.pop());
+    applyTypography(state.typography || 'classic', false);
     renderCanvas();
     updateUndoRedoUI();
     showToast('Action redone');
@@ -1213,12 +1272,43 @@
   }
 
   // --- Export Functionality ---
-  function getRenderedContentHTML() {
-    return state.blocks.map(b => renderBlockHTML(b)).join('\n');
+  function getRenderedContentHTML(withSelfContainedFonts = true) {
+    const themeKey = state.typography || 'classic';
+    const theme = TYPOGRAPHY_THEMES[themeKey] || TYPOGRAPHY_THEMES.classic;
+    const blocksHtml = state.blocks.map(b => renderBlockHTML(b)).join('\n');
+
+    if (withSelfContainedFonts) {
+      return `<style>
+  @import url('${theme.googleFontsUrl}');
+  .story-snippet {
+    --story-font-heading: ${theme.fontHeading};
+    --story-font-body: ${theme.fontBody};
+    font-family: var(--story-font-body);
+  }
+  .story-snippet .story-cover-title,
+  .story-snippet .story-heading,
+  .story-snippet .story-quote-text,
+  .story-snippet .split-content h3,
+  .story-snippet .stat-number,
+  .story-snippet .author-name,
+  .story-snippet .cta-heading {
+    font-family: var(--story-font-heading);
+  }
+</style>
+<div class="story-snippet" data-theme="${escapeHTML(themeKey)}">
+${blocksHtml}
+</div>`;
+    }
+
+    return `<div class="story-snippet story-inherit-fonts">
+${blocksHtml}
+</div>`;
   }
 
   function generateFullStandaloneHTML() {
-    const content = getRenderedContentHTML();
+    const themeKey = state.typography || 'classic';
+    const theme = TYPOGRAPHY_THEMES[themeKey] || TYPOGRAPHY_THEMES.classic;
+    const content = state.blocks.map(b => renderBlockHTML(b)).join('\n');
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1227,14 +1317,18 @@
   <title>${escapeHTML(state.title || 'Portfolio Story')}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="${theme.googleFontsUrl}" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    :root {
+      --story-font-heading: ${theme.fontHeading};
+      --story-font-body: ${theme.fontBody};
+    }
     body {
       margin: 0;
       padding: 0;
-      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--story-font-body);
       color: #1e293b;
       background-color: #ffffff;
       line-height: 1.6;
@@ -1261,7 +1355,7 @@
       color: #ffffff;
     }
     .story-cover-title {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: var(--story-font-heading);
       font-size: clamp(2.2rem, 5vw, 4rem);
       font-weight: 700;
       margin-bottom: 1rem;
@@ -1286,7 +1380,7 @@
       padding: 2.5rem 1.5rem 0.5rem;
     }
     .story-heading {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: var(--story-font-heading);
       font-size: clamp(1.85rem, 3.5vw, 2.75rem);
       font-weight: 700;
       color: #0f172a;
@@ -1392,7 +1486,7 @@
       border-radius: 8px;
     }
     .split-content h3 {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: var(--story-font-heading);
       font-size: 2rem;
       font-weight: 700;
       margin-bottom: 1rem;
@@ -1416,7 +1510,7 @@
       text-align: center;
     }
     .stat-number {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: var(--story-font-heading);
       font-size: clamp(2.5rem, 4.5vw, 3.75rem);
       font-weight: 700;
       color: #2563eb;
@@ -1543,7 +1637,7 @@
       object-fit: cover;
     }
     .author-name {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: var(--story-font-heading);
       font-size: 1.45rem;
       font-weight: 700;
       margin-bottom: 0.2rem;
@@ -1580,7 +1674,7 @@
       text-align: center;
     }
     .cta-heading {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: var(--story-font-heading);
       font-size: clamp(1.75rem, 3vw, 2.35rem);
       font-weight: 700;
       margin-bottom: 0.75rem;
@@ -1640,7 +1734,7 @@
       margin: 0;
     }
     .story-quote-text {
-      font-family: 'Playfair Display', Georgia, serif;
+      font-family: var(--story-font-heading);
       font-size: 1.5rem;
       font-style: italic;
       color: #0f172a;
@@ -1803,6 +1897,14 @@ ${content}
       }
     });
 
+    // Typography Switcher
+    document.querySelectorAll('[data-typography]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const theme = btn.dataset.typography;
+        applyTypography(theme, true);
+      });
+    });
+
     // Clear Canvas
     document.getElementById('btnClearAll')?.addEventListener('click', () => {
       if (confirm('Are you sure you want to clear all blocks? You can undo this action.')) {
@@ -1825,8 +1927,13 @@ ${content}
     });
 
     document.getElementById('btnCopySnippetHTML')?.addEventListener('click', () => {
-      const snippet = getRenderedContentHTML();
-      copyToClipboard(snippet, 'Article snippet copied!');
+      const snippet = getRenderedContentHTML(true);
+      copyToClipboard(snippet, 'Self-contained snippet (with fonts) copied!');
+    });
+
+    document.getElementById('btnCopySnippetInheritHTML')?.addEventListener('click', () => {
+      const snippet = getRenderedContentHTML(false);
+      copyToClipboard(snippet, 'Snippet (inheriting site fonts) copied!');
     });
 
     document.getElementById('btnExportJSON')?.addEventListener('click', () => {
@@ -1850,6 +1957,7 @@ ${content}
           if (imported && Array.isArray(imported.blocks)) {
             saveState();
             state = imported;
+            applyTypography(state.typography || 'classic', false);
             renderCanvas();
             showToast('Project loaded successfully!');
           } else {
@@ -1876,6 +1984,7 @@ ${content}
       state.blocks = JSON.parse(JSON.stringify(SAMPLE_STORY));
     }
 
+    applyTypography(state.typography || 'classic', false);
     renderCanvas();
     updateUndoRedoUI();
   }
