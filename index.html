@@ -38,10 +38,10 @@
         <button type="button" class="btn btn-outline-secondary active" data-viewport="desktop" title="Desktop View">
           <i class="fas fa-desktop"></i>
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-viewport="tablet" title="Tablet View">
+        <button type="button" class="btn btn-outline-secondary" data-viewport="tablet" title="Tablet View (768px)">
           <i class="fas fa-tablet-screen-button"></i>
         </button>
-        <button type="button" class="btn btn-outline-secondary" data-viewport="mobile" title="Mobile View">
+        <button type="button" class="btn btn-outline-secondary" data-viewport="mobile" title="Mobile View (400px)">
           <i class="fas fa-mobile-screen"></i>
         </button>
       </div>
@@ -77,17 +77,17 @@
             <li><h6 class="dropdown-header">Export HTML</h6></li>
             <li>
               <button class="dropdown-item" id="btnCopyFullHTML">
-                <i class="fas fa-copy me-2 text-primary"></i> Copy Complete Page HTML
+                <i class="fas fa-copy me-2 text-primary"></i> Copy Full Page HTML
               </button>
             </li>
             <li>
               <button class="dropdown-item" id="btnDownloadFullHTML">
-                <i class="fas fa-download me-2 text-success"></i> Download Standalone HTML File
+                <i class="fas fa-download me-2 text-success"></i> Download as .html File
               </button>
             </li>
             <li>
               <button class="dropdown-item" id="btnCopySnippetHTML">
-                <i class="fas fa-code me-2 text-secondary"></i> Copy Article Content Snippet
+                <i class="fas fa-code me-2 text-secondary"></i> Copy Article Snippet (CMS)
               </button>
             </li>
             <li><hr class="dropdown-divider"></li>
@@ -108,36 +108,82 @@
     </div>
   </header>
 
-  <!-- Add Block Palette Bar -->
+  <!-- Add Block Palette Bar (Categorized) -->
   <nav class="block-palette-bar" aria-label="Block Palette">
-    <span class="palette-label"><i class="fas fa-plus-circle me-1"></i> Add Block:</span>
-    <button class="btn-palette" data-add-block="cover">
-      <i class="fas fa-image text-primary"></i> Cover Hero
-    </button>
-    <button class="btn-palette" data-add-block="heading">
-      <i class="fas fa-heading text-secondary"></i> Heading
-    </button>
-    <button class="btn-palette" data-add-block="text">
-      <i class="fas fa-paragraph text-success"></i> Paragraph Text
-    </button>
-    <button class="btn-palette" data-add-block="wideImage">
-      <i class="fas fa-panorama text-warning"></i> Wide Image
-    </button>
-    <button class="btn-palette" data-add-block="bleedingImage">
-      <i class="fas fa-arrows-alt-h text-danger"></i> Bleeding Image
-    </button>
-    <button class="btn-palette" data-add-block="quote">
-      <i class="fas fa-quote-left text-info"></i> Pull Quote
-    </button>
-    <button class="btn-palette" data-add-block="embed">
-      <i class="fab fa-youtube text-danger"></i> Web Embed
-    </button>
-    <button class="btn-palette" data-add-block="caption">
-      <i class="fas fa-closed-captioning text-muted"></i> Standalone Caption
-    </button>
-    <button class="btn-palette" data-add-block="footer">
-      <i class="fas fa-grip-lines text-dark"></i> Footer
-    </button>
+    <!-- Media Group -->
+    <div class="palette-group">
+      <span class="palette-group-title"><i class="fas fa-camera me-1"></i> Media</span>
+      <button class="btn-palette" data-add-block="cover">
+        <i class="fas fa-image text-primary"></i> Cover Hero
+      </button>
+      <button class="btn-palette" data-add-block="wideImage">
+        <i class="fas fa-panorama text-warning"></i> Wide Photo
+      </button>
+      <button class="btn-palette" data-add-block="bleedingImage">
+        <i class="fas fa-arrows-alt-h text-danger"></i> Bleed Photo
+      </button>
+      <button class="btn-palette" data-add-block="twoColumnImage">
+        <i class="fas fa-columns text-info"></i> 2-Col Photos
+      </button>
+      <button class="btn-palette" data-add-block="gallery">
+        <i class="fas fa-border-all text-success"></i> Photo Gallery
+      </button>
+      <button class="btn-palette" data-add-block="embed">
+        <i class="fab fa-youtube text-danger"></i> Web Embed
+      </button>
+      <button class="btn-palette" data-add-block="audioPlayer">
+        <i class="fas fa-volume-high text-primary"></i> Audio Player
+      </button>
+    </div>
+
+    <!-- Text & Layout Group -->
+    <div class="palette-group">
+      <span class="palette-group-title"><i class="fas fa-pen-nib me-1"></i> Narrative</span>
+      <button class="btn-palette" data-add-block="heading">
+        <i class="fas fa-heading text-secondary"></i> Heading
+      </button>
+      <button class="btn-palette" data-add-block="text">
+        <i class="fas fa-paragraph text-success"></i> Paragraph
+      </button>
+      <button class="btn-palette" data-add-block="splitMediaText">
+        <i class="fas fa-table-columns text-primary"></i> Split Media+Text
+      </button>
+      <button class="btn-palette" data-add-block="quote">
+        <i class="fas fa-quote-left text-info"></i> Pull Quote
+      </button>
+      <button class="btn-palette" data-add-block="callout">
+        <i class="fas fa-bookmark text-warning"></i> Callout Box
+      </button>
+      <button class="btn-palette" data-add-block="divider">
+        <i class="fas fa-minus text-muted"></i> Divider
+      </button>
+    </div>
+
+    <!-- Impact & Profile Group -->
+    <div class="palette-group">
+      <span class="palette-group-title"><i class="fas fa-id-card me-1"></i> Profile & Impact</span>
+      <button class="btn-palette" data-add-block="stats">
+        <i class="fas fa-chart-simple text-primary"></i> Big Stats
+      </button>
+      <button class="btn-palette" data-add-block="timeline">
+        <i class="fas fa-timeline text-secondary"></i> Timeline
+      </button>
+      <button class="btn-palette" data-add-block="skillsPills">
+        <i class="fas fa-tags text-success"></i> Skills Pills
+      </button>
+      <button class="btn-palette" data-add-block="authorBio">
+        <i class="fas fa-user text-info"></i> Author Bio
+      </button>
+      <button class="btn-palette" data-add-block="ctaBanner">
+        <i class="fas fa-bullhorn text-danger"></i> CTA Banner
+      </button>
+      <button class="btn-palette" data-add-block="caption">
+        <i class="fas fa-closed-captioning text-muted"></i> Caption
+      </button>
+      <button class="btn-palette" data-add-block="footer">
+        <i class="fas fa-shoe-prints text-dark"></i> Footer
+      </button>
+    </div>
   </nav>
 
   <!-- Workspace Canvas -->
