@@ -215,6 +215,11 @@
   let state = {
     title: 'Visual Story Portfolio',
     typography: 'classic',
+    customTypography: {
+      headingFont: 'Playfair Display',
+      bodyFont: 'Roboto',
+      baseScale: '100'
+    },
     blocks: []
   };
 
@@ -222,25 +227,83 @@
   const redoStack = [];
   const STORAGE_KEY = 'portfolio_builder_draft_v3';
 
+  function getFontUrlForPair(heading, body) {
+    const cleanH = encodeURIComponent(heading).replace(/%20/g, '+');
+    const cleanB = encodeURIComponent(body).replace(/%20/g, '+');
+    return `https://fonts.googleapis.com/css2?family=${cleanH}:wght@600;700&family=${cleanB}:wght@300;400;500;700&display=swap`;
+  }
+
+  function resolveActiveTheme() {
+    const themeKey = state.typography || 'classic';
+    if (themeKey === 'custom') {
+      const custom = state.customTypography || {
+        headingFont: 'Playfair Display',
+        bodyFont: 'Roboto',
+        baseScale: '100'
+      };
+      return {
+        key: 'custom',
+        name: `Custom (${custom.headingFont})`,
+        fontHeading: `'${custom.headingFont}', serif`,
+        fontBody: `'${custom.bodyFont}', sans-serif`,
+        googleFontsUrl: getFontUrlForPair(custom.headingFont, custom.bodyFont),
+        baseScale: custom.baseScale || '100'
+      };
+    }
+    const theme = TYPOGRAPHY_THEMES[themeKey] || TYPOGRAPHY_THEMES.classic;
+    return {
+      key: themeKey,
+      name: theme.name,
+      fontHeading: theme.fontHeading,
+      fontBody: theme.fontBody,
+      googleFontsUrl: theme.googleFontsUrl,
+      baseScale: '100'
+    };
+  }
+
   function applyTypography(themeKey, recordHistory = false) {
-    if (!TYPOGRAPHY_THEMES[themeKey]) themeKey = 'classic';
+    if (themeKey !== 'custom' && !TYPOGRAPHY_THEMES[themeKey]) themeKey = 'classic';
     if (recordHistory) {
       saveState();
     }
     state.typography = themeKey;
     const canvas = document.getElementById('storyCanvas');
-    if (canvas) {
-      canvas.dataset.theme = themeKey;
-    }
     const label = document.getElementById('currentTypographyLabel');
-    if (label && TYPOGRAPHY_THEMES[themeKey]) {
-      label.textContent = TYPOGRAPHY_THEMES[themeKey].name;
+
+    if (themeKey === 'custom') {
+      const custom = state.customTypography || {
+        headingFont: 'Playfair Display',
+        bodyFont: 'Roboto',
+        baseScale: '100'
+      };
+      if (canvas) {
+        canvas.dataset.theme = 'custom';
+        canvas.style.setProperty('--story-font-heading', `'${custom.headingFont}', serif`);
+        canvas.style.setProperty('--story-font-body', `'${custom.bodyFont}', sans-serif`);
+        canvas.style.fontSize = `${custom.baseScale}%`;
+      }
+      if (label) {
+        label.textContent = `Custom: ${custom.headingFont}`;
+      }
+    } else {
+      if (canvas) {
+        canvas.dataset.theme = themeKey;
+        canvas.style.removeProperty('--story-font-heading');
+        canvas.style.removeProperty('--story-font-body');
+        canvas.style.fontSize = '';
+      }
+      if (label && TYPOGRAPHY_THEMES[themeKey]) {
+        label.textContent = TYPOGRAPHY_THEMES[themeKey].name;
+      }
     }
+
     document.querySelectorAll('[data-typography]').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.typography === themeKey);
     });
+
     if (recordHistory) {
-      showToast(`Typography set to ${TYPOGRAPHY_THEMES[themeKey].name}`, 'font');
+      const name = themeKey === 'custom' ? 'Custom Typography' : TYPOGRAPHY_THEMES[themeKey]?.name;
+      showToast(`Typography set to ${name}`, 'font');
     }
   }
 
@@ -316,6 +379,16 @@
     }, 2800);
   }
 
+  // Helper to get block-level custom typography and sizing classes
+  function getCustomStyleClasses(d) {
+    if (!d || !d.enableCustomStyle) return '';
+    const classes = [];
+    if (d.customSize && d.customSize !== 'default') classes.push('size-' + d.customSize);
+    if (d.customFontRole && d.customFontRole !== 'default') classes.push('font-role-' + d.customFontRole);
+    if (d.customAlign && d.customAlign !== 'default') classes.push('align-' + d.customAlign);
+    return classes.length ? ' ' + classes.join(' ') : '';
+  }
+
   // --- Block Rendering Helpers (All 20 Blocks) ---
   function renderBlockHTML(block) {
     const d = block.data || {};
@@ -326,7 +399,7 @@
         const bgImg = sanitizeURL(d.imageUrl || '');
         return `
           <div class="story-cover" style="background-image: url('${bgImg}');">
-            <div class="story-cover-overlay" style="background-color: rgba(0, 0, 0, ${opacity});">
+            <div class="story-cover-overlay${getCustomStyleClasses(d)}" style="background-color: rgba(0, 0, 0, ${opacity});">
               <h1 class="story-cover-title">${escapeHTML(d.title || 'Your Title Here')}</h1>
               ${d.tagline ? `<p class="story-cover-tagline">${escapeHTML(d.tagline)}</p>` : ''}
               <div class="story-cover-meta">
@@ -342,7 +415,7 @@
         const tag = ['h1', 'h2', 'h3'].includes(d.level) ? d.level : 'h1';
         return `
           <div class="story-heading-container">
-            <${tag} class="story-heading">${escapeHTML(d.text || 'Section Heading')}</${tag}>
+            <${tag} class="story-heading${getCustomStyleClasses(d)}">${escapeHTML(d.text || 'Section Heading')}</${tag}>
           </div>`;
       }
 
@@ -350,7 +423,7 @@
       case 'text': {
         return `
           <div class="story-text-container">
-            <p class="story-text">${escapeHTML(d.text || '')}</p>
+            <p class="story-text${getCustomStyleClasses(d)}">${escapeHTML(d.text || '')}</p>
           </div>`;
       }
 
@@ -380,7 +453,7 @@
       case 'quote': {
         return `
           <div class="story-quote-container">
-            <blockquote class="story-pull-quote">
+            <blockquote class="story-pull-quote${getCustomStyleClasses(d)}">
               <p class="story-quote-text">“${escapeHTML(d.quote || '')}”</p>
               ${d.author ? `<cite class="story-quote-cite">— ${escapeHTML(d.author)}</cite>` : ''}
             </blockquote>
@@ -403,14 +476,14 @@
       case 'caption': {
         return `
           <div class="story-standalone-caption">
-            <p class="story-caption"><em>${escapeHTML(d.text || '')}</em></p>
+            <p class="story-caption${getCustomStyleClasses(d)}"><em>${escapeHTML(d.text || '')}</em></p>
           </div>`;
       }
 
       // 9. Footer
       case 'footer': {
         return `
-          <footer class="story-footer">
+          <footer class="story-footer${getCustomStyleClasses(d)}">
             <p>${escapeHTML(d.text || '')}</p>
           </footer>`;
       }
@@ -471,7 +544,7 @@
                 <img src="${imgUrl}" alt="${escapeHTML(d.title || 'Image')}" loading="lazy" />
                 ${d.caption ? `<div class="story-caption">${escapeHTML(d.caption)}</div>` : ''}
               </div>
-              <div class="split-content">
+              <div class="split-content${getCustomStyleClasses(d)}">
                 <h3>${escapeHTML(d.title || '')}</h3>
                 <p>${escapeHTML(d.text || '')}</p>
               </div>
@@ -540,7 +613,7 @@
         const icon = icons[d.type] || 'info-circle';
         return `
           <div class="story-callout-container">
-            <aside class="story-callout ${typeClass}">
+            <aside class="story-callout ${typeClass}${getCustomStyleClasses(d)}">
               ${d.title ? `<div class="callout-header"><i class="fas fa-${icon}"></i> ${escapeHTML(d.title)}</div>` : ''}
               <p class="callout-body">${escapeHTML(d.text || '')}</p>
             </aside>
@@ -596,7 +669,7 @@
         const btnUrl = sanitizeURL(d.buttonUrl || '#');
         return `
           <div class="story-cta-container">
-            <div class="story-cta-box">
+            <div class="story-cta-box${getCustomStyleClasses(d)}">
               <h3 class="cta-heading">${escapeHTML(d.heading || 'Take the Next Step')}</h3>
               ${d.subtext ? `<p class="cta-subtext">${escapeHTML(d.subtext)}</p>` : ''}
               <a href="${btnUrl}" target="_blank" rel="noopener" class="btn-cta">
@@ -761,11 +834,16 @@
 
   // --- Modal Form Editor ---
   let blockModalInstance = null;
+  let customTypographyModalInstance = null;
 
   function initModal() {
     const modalEl = document.getElementById('blockEditModal');
     if (modalEl && window.bootstrap) {
       blockModalInstance = new bootstrap.Modal(modalEl);
+    }
+    const customTypeModalEl = document.getElementById('customTypographyModal');
+    if (customTypeModalEl && window.bootstrap) {
+      customTypographyModalInstance = new bootstrap.Modal(customTypeModalEl);
     }
   }
 
@@ -831,7 +909,51 @@
     return names[type] || 'Story Block';
   }
 
-  function generateFormFields(block) {
+  function generateCustomStyleToggle(d) {
+    const hasCustom = !!d.enableCustomStyle;
+    return `
+      <div class="mt-3 pt-3 border-top">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" id="field_enableCustomStyle" ${hasCustom ? 'checked' : ''} onchange="document.getElementById('customStylePanel').classList.toggle('d-none', !this.checked)">
+          <label class="form-check-label fw-semibold text-secondary" for="field_enableCustomStyle">
+            <i class="fas fa-sliders me-1"></i> Customize Typography & Sizing
+          </label>
+        </div>
+        <div id="customStylePanel" class="${hasCustom ? '' : 'd-none'} p-3 bg-light rounded border">
+          <div class="row g-2">
+            <div class="col-md-4">
+              <label class="form-label small">Size Scale</label>
+              <select class="form-select form-select-sm" id="field_customSize">
+                <option value="default" ${d.customSize === 'default' || !d.customSize ? 'selected' : ''}>Default</option>
+                <option value="sm" ${d.customSize === 'sm' ? 'selected' : ''}>Small / Compact</option>
+                <option value="lg" ${d.customSize === 'lg' ? 'selected' : ''}>Large / Lead</option>
+                <option value="xl" ${d.customSize === 'xl' ? 'selected' : ''}>Extra Large / Display</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Font Role</label>
+              <select class="form-select form-select-sm" id="field_customFontRole">
+                <option value="default" ${d.customFontRole === 'default' || !d.customFontRole ? 'selected' : ''}>Theme Default</option>
+                <option value="heading" ${d.customFontRole === 'heading' ? 'selected' : ''}>Heading Font</option>
+                <option value="body" ${d.customFontRole === 'body' ? 'selected' : ''}>Body Font</option>
+                <option value="mono" ${d.customFontRole === 'mono' ? 'selected' : ''}>Monospace Accent</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Alignment</label>
+              <select class="form-select form-select-sm" id="field_customAlign">
+                <option value="default" ${d.customAlign === 'default' || !d.customAlign ? 'selected' : ''}>Default</option>
+                <option value="left" ${d.customAlign === 'left' ? 'selected' : ''}>Left</option>
+                <option value="center" ${d.customAlign === 'center' ? 'selected' : ''}>Center</option>
+                <option value="right" ${d.customAlign === 'right' ? 'selected' : ''}>Right</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function getBaseFormFields(block) {
     const d = block.data || {};
     switch (block.type) {
       case 'cover':
@@ -1159,6 +1281,15 @@
     }
   }
 
+  function generateFormFields(block) {
+    const d = block.data || {};
+    let fields = getBaseFormFields(block);
+    if (['cover', 'heading', 'text', 'quote', 'callout', 'caption', 'footer', 'splitMediaText', 'ctaBanner'].includes(block.type)) {
+      fields += generateCustomStyleToggle(d);
+    }
+    return fields;
+  }
+
   function extractFormData(type) {
     const data = {};
     const getVal = (id) => {
@@ -1268,14 +1399,35 @@
         data.text = getVal('field_text');
         break;
     }
+
+    const enableCustomStyle = document.getElementById('field_enableCustomStyle')?.checked || false;
+    data.enableCustomStyle = enableCustomStyle;
+    if (enableCustomStyle) {
+      data.customSize = getVal('field_customSize') || 'default';
+      data.customFontRole = getVal('field_customFontRole') || 'default';
+      data.customAlign = getVal('field_customAlign') || 'default';
+    }
+
     return data;
   }
 
   // --- Export Functionality ---
   function getRenderedContentHTML(withSelfContainedFonts = true) {
-    const themeKey = state.typography || 'classic';
-    const theme = TYPOGRAPHY_THEMES[themeKey] || TYPOGRAPHY_THEMES.classic;
+    const theme = resolveActiveTheme();
     const blocksHtml = state.blocks.map(b => renderBlockHTML(b)).join('\n');
+    const overridesCss = `
+  .story-snippet .size-sm { font-size: 0.92rem !important; }
+  .story-snippet .size-lg { font-size: 1.35rem !important; line-height: 1.75 !important; }
+  .story-snippet .size-xl { font-size: clamp(1.5rem, 2.8vw, 2.1rem) !important; font-weight: 700 !important; }
+  .story-snippet .story-heading.size-sm { font-size: clamp(1.3rem, 2.2vw, 1.75rem) !important; }
+  .story-snippet .story-heading.size-lg { font-size: clamp(2.3rem, 4.5vw, 3.4rem) !important; }
+  .story-snippet .story-heading.size-xl { font-size: clamp(2.9rem, 6vw, 4.4rem) !important; }
+  .story-snippet .font-role-heading { font-family: var(--story-font-heading) !important; }
+  .story-snippet .font-role-body { font-family: var(--story-font-body) !important; }
+  .story-snippet .font-role-mono { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace !important; }
+  .story-snippet .align-left { text-align: left !important; }
+  .story-snippet .align-center { text-align: center !important; }
+  .story-snippet .align-right { text-align: right !important; }`;
 
     if (withSelfContainedFonts) {
       return `<style>
@@ -1284,6 +1436,7 @@
     --story-font-heading: ${theme.fontHeading};
     --story-font-body: ${theme.fontBody};
     font-family: var(--story-font-body);
+    font-size: ${theme.baseScale || 100}%;
   }
   .story-snippet .story-cover-title,
   .story-snippet .story-heading,
@@ -1294,20 +1447,22 @@
   .story-snippet .cta-heading {
     font-family: var(--story-font-heading);
   }
+  ${overridesCss}
 </style>
-<div class="story-snippet" data-theme="${escapeHTML(themeKey)}">
+<div class="story-snippet" data-theme="${escapeHTML(theme.key)}">
 ${blocksHtml}
 </div>`;
     }
 
-    return `<div class="story-snippet story-inherit-fonts">
+    return `<style>${overridesCss}
+</style>
+<div class="story-snippet story-inherit-fonts">
 ${blocksHtml}
 </div>`;
   }
 
   function generateFullStandaloneHTML() {
-    const themeKey = state.typography || 'classic';
-    const theme = TYPOGRAPHY_THEMES[themeKey] || TYPOGRAPHY_THEMES.classic;
+    const theme = resolveActiveTheme();
     const content = state.blocks.map(b => renderBlockHTML(b)).join('\n');
     return `<!DOCTYPE html>
 <html lang="en">
@@ -1329,10 +1484,24 @@ ${blocksHtml}
       margin: 0;
       padding: 0;
       font-family: var(--story-font-body);
+      font-size: ${theme.baseScale || 100}%;
       color: #1e293b;
       background-color: #ffffff;
       line-height: 1.6;
     }
+    /* Block-Level Typography Overrides */
+    .size-sm { font-size: 0.92rem !important; }
+    .size-lg { font-size: 1.35rem !important; line-height: 1.75 !important; }
+    .size-xl { font-size: clamp(1.5rem, 2.8vw, 2.1rem) !important; font-weight: 700 !important; }
+    .story-heading.size-sm { font-size: clamp(1.3rem, 2.2vw, 1.75rem) !important; }
+    .story-heading.size-lg { font-size: clamp(2.3rem, 4.5vw, 3.4rem) !important; }
+    .story-heading.size-xl { font-size: clamp(2.9rem, 6vw, 4.4rem) !important; }
+    .font-role-heading { font-family: var(--story-font-heading) !important; }
+    .font-role-body { font-family: var(--story-font-body) !important; }
+    .font-role-mono { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace !important; }
+    .align-left { text-align: left !important; }
+    .align-center { text-align: center !important; }
+    .align-right { text-align: right !important; }
     .story-cover {
       position: relative;
       width: 100%;
@@ -1897,12 +2066,65 @@ ${content}
       }
     });
 
-    // Typography Switcher
+    // Typography Switcher (Curated Themes)
     document.querySelectorAll('[data-typography]').forEach(btn => {
       btn.addEventListener('click', () => {
         const theme = btn.dataset.typography;
         applyTypography(theme, true);
       });
+    });
+
+    // Custom Typography Pairing Modal
+    const btnOpenCustom = document.getElementById('btnOpenCustomTypography');
+    const selectHeading = document.getElementById('customHeadingFont');
+    const selectBody = document.getElementById('customBodyFont');
+    const selectBaseScale = document.getElementById('customBaseScale');
+    const previewHeading = document.getElementById('typographyPreviewHeading');
+    const previewBody = document.getElementById('typographyPreviewBody');
+
+    function updateCustomTypographyPreview() {
+      if (!selectHeading || !selectBody) return;
+      const hFont = selectHeading.value;
+      const bFont = selectBody.value;
+      const scale = selectBaseScale ? selectBaseScale.value : '100';
+      if (previewHeading) {
+        previewHeading.style.fontFamily = `'${hFont}', serif`;
+      }
+      if (previewBody) {
+        previewBody.style.fontFamily = `'${bFont}', sans-serif`;
+        previewBody.style.fontSize = `${scale}%`;
+      }
+    }
+
+    if (btnOpenCustom) {
+      btnOpenCustom.addEventListener('click', () => {
+        const custom = state.customTypography || {
+          headingFont: 'Playfair Display',
+          bodyFont: 'Roboto',
+          baseScale: '100'
+        };
+        if (selectHeading) selectHeading.value = custom.headingFont || 'Playfair Display';
+        if (selectBody) selectBody.value = custom.bodyFont || 'Roboto';
+        if (selectBaseScale) selectBaseScale.value = custom.baseScale || '100';
+        updateCustomTypographyPreview();
+        customTypographyModalInstance?.show();
+      });
+    }
+
+    selectHeading?.addEventListener('change', updateCustomTypographyPreview);
+    selectBody?.addEventListener('change', updateCustomTypographyPreview);
+    selectBaseScale?.addEventListener('change', updateCustomTypographyPreview);
+
+    document.getElementById('btnSaveCustomTypography')?.addEventListener('click', () => {
+      saveState();
+      state.customTypography = {
+        headingFont: selectHeading?.value || 'Playfair Display',
+        bodyFont: selectBody?.value || 'Roboto',
+        baseScale: selectBaseScale?.value || '100'
+      };
+      applyTypography('custom', true);
+      customTypographyModalInstance?.hide();
+      showToast('Custom typography saved & applied!', 'sliders');
     });
 
     // Clear Canvas

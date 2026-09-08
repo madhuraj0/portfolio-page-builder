@@ -6,10 +6,10 @@
   <title>Portfolio & Story Page Builder</title>
   <meta name="description" content="A visual, distraction-free block page builder for editorial portfolios, photo essays, and long-form visual stories.">
 
-  <!-- Google Fonts for Curated Typography Themes -->
+  <!-- Google Fonts for Curated & Custom Typography Themes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@500;700&family=Lora:ital,wght@0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@600;700;800&family=Roboto:wght@300;400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@500;700&family=Lora:ital,wght@0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Montserrat:wght@500;700&family=Oswald:wght@500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@600;700;800&family=Roboto:wght@300;400;500;700&family=Source+Sans+3:wght@400;600&family=Space+Grotesk:wght@600;700&family=Syne:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -93,6 +93,13 @@
               <button class="dropdown-item" data-typography="minimal-mono">
                 <span class="d-block fw-semibold">Minimal Mono</span>
                 <small class="text-muted">JetBrains Mono + Inter</small>
+              </button>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <button class="dropdown-item" id="btnOpenCustomTypography">
+                <span class="d-block fw-semibold text-primary"><i class="fas fa-sliders me-1"></i> Custom Typography...</span>
+                <small class="text-muted">Pair your own custom fonts</small>
               </button>
             </li>
           </ul>
@@ -257,6 +264,72 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
           <button type="button" class="btn btn-primary" id="btnSaveBlock">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Custom Typography Pairing -->
+  <div class="modal fade" id="customTypographyModal" tabindex="-1" aria-labelledby="customTypographyModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="customTypographyModalTitle"><i class="fas fa-sliders me-2 text-primary"></i> Custom Typography</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label" for="customHeadingFont">Heading & Title Font</label>
+            <select class="form-select" id="customHeadingFont">
+              <option value="Playfair Display">Playfair Display (High-Contrast Serif)</option>
+              <option value="Plus Jakarta Sans">Plus Jakarta Sans (Modern Geometric)</option>
+              <option value="Inter">Inter (Clean Neo-Grotesque)</option>
+              <option value="Lora">Lora (Literary Contemporary Serif)</option>
+              <option value="Space Grotesk">Space Grotesk (Tech / Avant-Garde)</option>
+              <option value="Syne">Syne (Bold Architectural)</option>
+              <option value="Cinzel">Cinzel (Classic Trajan Serif)</option>
+              <option value="Montserrat">Montserrat (Geometric Sans)</option>
+              <option value="Oswald">Oswald (Condensed Display)</option>
+              <option value="Merriweather">Merriweather (Sturdy Editorial Serif)</option>
+              <option value="JetBrains Mono">JetBrains Mono (Technical Monospace)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="customBodyFont">Body & Narrative Font</label>
+            <select class="form-select" id="customBodyFont">
+              <option value="Inter">Inter (Ultra-Legible Sans)</option>
+              <option value="Roboto">Roboto (Clean Neutral Sans)</option>
+              <option value="DM Sans">DM Sans (Warm Minimal Sans)</option>
+              <option value="Work Sans">Work Sans (Editorial Sans)</option>
+              <option value="Source Sans 3">Source Sans 3 (Optimized for Reading)</option>
+              <option value="Plus Jakarta Sans">Plus Jakarta Sans (Crisp Modern Sans)</option>
+              <option value="Merriweather">Merriweather (Traditional Reading Serif)</option>
+              <option value="Lora">Lora (Elegant Editorial Serif)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="customBaseScale">Base Typography Scale</label>
+            <select class="form-select" id="customBaseScale">
+              <option value="92">Compact (92% - dense information)</option>
+              <option value="100" selected>Standard (100% - balanced)</option>
+              <option value="110">Spacious / Large (110% - high impact)</option>
+            </select>
+          </div>
+
+          <!-- Live In-Modal Preview -->
+          <div class="p-3 bg-light rounded border mt-3">
+            <div class="text-uppercase small fw-bold text-muted mb-2">Live Preview</div>
+            <h4 id="typographyPreviewHeading" class="mb-2" style="font-family: 'Playfair Display', serif;">The Architecture of Memory</h4>
+            <p id="typographyPreviewBody" class="mb-0 text-secondary" style="font-family: 'Roboto', sans-serif; font-size: 0.95rem;">
+              Before first light broke across the mountain ridge, the glacial valley lay silent in a blanket of blue twilight.
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSaveCustomTypography">Apply Typography</button>
         </div>
       </div>
     </div>
