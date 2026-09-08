@@ -239,6 +239,8 @@
   let state = {
     title: 'Visual Story Portfolio',
     typography: 'classic',
+    colorMode: 'light',
+    accentColor: '#2563eb',
     customTypography: {
       headingFont: 'Playfair Display',
       bodyFont: 'Roboto',
@@ -331,6 +333,59 @@
     }
   }
 
+  function applyColorMode(mode, recordHistory = false) {
+    if (!['light', 'dark'].includes(mode)) mode = 'light';
+    if (recordHistory) {
+      saveState();
+    }
+    state.colorMode = mode;
+    const isDark = mode === 'dark';
+
+    document.documentElement.setAttribute('data-theme-mode', mode);
+    const canvas = document.getElementById('storyCanvas');
+    if (canvas) {
+      canvas.setAttribute('data-theme-mode', mode);
+    }
+    const btn = document.getElementById('btnToggleColorMode');
+    if (btn) {
+      btn.innerHTML = isDark ? '<i class="fas fa-sun text-warning"></i>' : '<i class="fas fa-moon"></i>';
+      btn.title = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    }
+    if (recordHistory) {
+      showToast(`Switched to ${isDark ? 'Dark' : 'Light'} Mode`, isDark ? 'moon' : 'sun');
+    }
+  }
+
+  function applyAccentColor(hex, name = null, recordHistory = false) {
+    if (!hex) hex = '#2563eb';
+    if (recordHistory) {
+      saveState();
+    }
+    state.accentColor = hex;
+
+    document.documentElement.style.setProperty('--primary-color', hex);
+    const canvas = document.getElementById('storyCanvas');
+    if (canvas) {
+      canvas.style.setProperty('--primary-color', hex);
+    }
+
+    const dot = document.getElementById('currentAccentDot');
+    if (dot) dot.style.backgroundColor = hex;
+
+    const label = document.getElementById('currentAccentLabel');
+    if (label && name) label.textContent = name;
+
+    const colorInput = document.getElementById('inputCustomAccent');
+    if (colorInput) colorInput.value = hex;
+
+    const hexLabel = document.getElementById('customAccentHex');
+    if (hexLabel) hexLabel.textContent = hex.toLowerCase();
+
+    if (recordHistory) {
+      showToast(`Accent color set to ${name || hex}`, 'palette');
+    }
+  }
+
   function saveState(recordHistory = true) {
     if (recordHistory) {
       undoStack.push(JSON.stringify(state));
@@ -370,6 +425,8 @@
     redoStack.push(JSON.stringify(state));
     state = JSON.parse(undoStack.pop());
     applyTypography(state.typography || 'classic', false);
+    applyColorMode(state.colorMode || 'light', false);
+    applyAccentColor(state.accentColor || '#2563eb', null, false);
     renderCanvas();
     updateUndoRedoUI();
     showToast('Action undone');
@@ -380,6 +437,8 @@
     undoStack.push(JSON.stringify(state));
     state = JSON.parse(redoStack.pop());
     applyTypography(state.typography || 'classic', false);
+    applyColorMode(state.colorMode || 'light', false);
+    applyAccentColor(state.accentColor || '#2563eb', null, false);
     renderCanvas();
     updateUndoRedoUI();
     showToast('Action redone');
@@ -411,6 +470,19 @@
     if (d.customFontRole && d.customFontRole !== 'default') classes.push('font-role-' + d.customFontRole);
     if (d.customAlign && d.customAlign !== 'default') classes.push('align-' + d.customAlign);
     return classes.length ? ' ' + classes.join(' ') : '';
+  }
+
+  // Helper to get block-level custom inline color styles
+  function getCustomStyleInline(d) {
+    if (!d || !d.enableCustomStyle) return '';
+    const styles = [];
+    if (d.applyCustomAccent && d.customAccent) {
+      styles.push(`--primary-color: ${d.customAccent}; border-color: ${d.customAccent};`);
+    }
+    if (d.applyCustomBg && d.customBg) {
+      styles.push(`background-color: ${d.customBg};`);
+    }
+    return styles.length ? ` style="${styles.join(' ')}"` : '';
   }
 
   // --- Block Rendering Helpers (All 20 Blocks) ---
@@ -477,7 +549,7 @@
       case 'quote': {
         return `
           <div class="story-quote-container">
-            <blockquote class="story-pull-quote${getCustomStyleClasses(d)}">
+            <blockquote class="story-pull-quote${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
               <p class="story-quote-text">“${renderInlineMarkdown(d.quote || '')}”</p>
               ${d.author ? `<cite class="story-quote-cite">— ${escapeHTML(d.author)}</cite>` : ''}
             </blockquote>
@@ -507,7 +579,7 @@
       // 9. Footer
       case 'footer': {
         return `
-          <footer class="story-footer${getCustomStyleClasses(d)}">
+          <footer class="story-footer${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
             <p>${renderInlineMarkdown(d.text || '')}</p>
           </footer>`;
       }
@@ -637,7 +709,7 @@
         const icon = icons[d.type] || 'info-circle';
         return `
           <div class="story-callout-container">
-            <aside class="story-callout ${typeClass}${getCustomStyleClasses(d)}">
+            <aside class="story-callout ${typeClass}${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
               ${d.title ? `<div class="callout-header"><i class="fas fa-${icon}"></i> ${escapeHTML(d.title)}</div>` : ''}
               <p class="callout-body">${renderInlineMarkdown(d.text || '')}</p>
             </aside>
@@ -693,7 +765,7 @@
         const btnUrl = sanitizeURL(d.buttonUrl || '#');
         return `
           <div class="story-cta-container">
-            <div class="story-cta-box${getCustomStyleClasses(d)}">
+            <div class="story-cta-box${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
               <h3 class="cta-heading">${escapeHTML(d.heading || 'Take the Next Step')}</h3>
               ${d.subtext ? `<p class="cta-subtext">${renderInlineMarkdown(d.subtext)}</p>` : ''}
               <a href="${btnUrl}" target="_blank" rel="noopener" class="btn-cta">
@@ -989,7 +1061,7 @@
         <div class="form-check form-switch mb-2">
           <input class="form-check-input" type="checkbox" id="field_enableCustomStyle" ${hasCustom ? 'checked' : ''} onchange="document.getElementById('customStylePanel').classList.toggle('d-none', !this.checked)">
           <label class="form-check-label fw-semibold text-secondary" for="field_enableCustomStyle">
-            <i class="fas fa-sliders me-1"></i> Customize Typography & Sizing
+            <i class="fas fa-sliders me-1"></i> Customize Typography & Styling
           </label>
         </div>
         <div id="customStylePanel" class="${hasCustom ? '' : 'd-none'} p-3 bg-light rounded border">
@@ -1020,6 +1092,28 @@
                 <option value="center" ${d.customAlign === 'center' ? 'selected' : ''}>Center</option>
                 <option value="right" ${d.customAlign === 'right' ? 'selected' : ''}>Right</option>
               </select>
+            </div>
+          </div>
+          <div class="row g-2 mt-2 pt-2 border-top">
+            <div class="col-md-6">
+              <label class="form-label small" for="field_customAccent">Custom Accent / Border Color</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="color" class="form-control form-control-color form-control-sm p-0 border-0" id="field_customAccent" value="${d.customAccent || '#2563eb'}" style="width: 28px; height: 28px; cursor: pointer;">
+                <div class="form-check mb-0">
+                  <input class="form-check-input" type="checkbox" id="field_applyCustomAccent" ${d.applyCustomAccent ? 'checked' : ''}>
+                  <label class="form-check-label small" for="field_applyCustomAccent">Enable Custom Accent</label>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small" for="field_customBg">Custom Surface / Background</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="color" class="form-control form-control-color form-control-sm p-0 border-0" id="field_customBg" value="${d.customBg || '#f8fafc'}" style="width: 28px; height: 28px; cursor: pointer;">
+                <div class="form-check mb-0">
+                  <input class="form-check-input" type="checkbox" id="field_applyCustomBg" ${d.applyCustomBg ? 'checked' : ''}>
+                  <label class="form-check-label small" for="field_applyCustomBg">Enable Custom Background</label>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1479,6 +1573,10 @@
       data.customSize = getVal('field_customSize') || 'default';
       data.customFontRole = getVal('field_customFontRole') || 'default';
       data.customAlign = getVal('field_customAlign') || 'default';
+      data.applyCustomAccent = document.getElementById('field_applyCustomAccent')?.checked || false;
+      data.customAccent = getVal('field_customAccent') || '#2563eb';
+      data.applyCustomBg = document.getElementById('field_applyCustomBg')?.checked || false;
+      data.customBg = getVal('field_customBg') || '#f8fafc';
     }
 
     return data;
@@ -1487,8 +1585,15 @@
   // --- Export Functionality ---
   function getRenderedContentHTML(withSelfContainedFonts = true) {
     const theme = resolveActiveTheme();
+    const accent = state.accentColor || '#2563eb';
+    const mode = state.colorMode || 'light';
+    const isDark = mode === 'dark';
     const blocksHtml = state.blocks.map(b => renderBlockHTML(b)).join('\n');
     const overridesCss = `
+  .story-snippet {
+    --primary-color: ${accent};
+    --primary-hover: ${accent};
+  }
   .story-snippet .size-sm { font-size: 0.92rem !important; }
   .story-snippet .size-lg { font-size: 1.35rem !important; line-height: 1.75 !important; }
   .story-snippet .size-xl { font-size: clamp(1.5rem, 2.8vw, 2.1rem) !important; font-weight: 700 !important; }
@@ -1501,9 +1606,29 @@
   .story-snippet .align-left { text-align: left !important; }
   .story-snippet .align-center { text-align: center !important; }
   .story-snippet .align-right { text-align: right !important; }
-  .story-snippet .story-link { color: #2563eb; text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
-  .story-snippet .story-link:hover { color: #1d4ed8; text-decoration: underline; }
-  .story-snippet .story-inline-code { background-color: #f1f5f9; color: #0f172a; padding: 0.15rem 0.38rem; border-radius: 4px; font-size: 0.88em; font-family: monospace; }`;
+  .story-snippet .story-link { color: var(--primary-color); text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
+  .story-snippet .story-link:hover { color: var(--primary-hover); text-decoration: underline; }
+  .story-snippet .story-inline-code { background-color: #f1f5f9; color: #0f172a; padding: 0.15rem 0.38rem; border-radius: 4px; font-size: 0.88em; font-family: monospace; }
+  .story-snippet[data-theme-mode="dark"] { background-color: #0a0f1d; color: #cbd5e1; }
+  .story-snippet[data-theme-mode="dark"] .story-heading { color: #f8fafc; }
+  .story-snippet[data-theme-mode="dark"] .story-text { color: #cbd5e1; }
+  .story-snippet[data-theme-mode="dark"] .story-caption { color: #94a3b8; }
+  .story-snippet[data-theme-mode="dark"] .split-content h3 { color: #f8fafc; }
+  .story-snippet[data-theme-mode="dark"] .split-content p { color: #cbd5e1; }
+  .story-snippet[data-theme-mode="dark"] .stat-label { color: #f8fafc; }
+  .story-snippet[data-theme-mode="dark"] .stat-sub { color: #94a3b8; }
+  .story-snippet[data-theme-mode="dark"] .timeline-title { color: #f8fafc; }
+  .story-snippet[data-theme-mode="dark"] .timeline-desc { color: #cbd5e1; }
+  .story-snippet[data-theme-mode="dark"] .callout-header { color: #f8fafc; }
+  .story-snippet[data-theme-mode="dark"] .callout-body { color: #cbd5e1; }
+  .story-snippet[data-theme-mode="dark"] .story-quote-text { color: #f8fafc; }
+  .story-snippet[data-theme-mode="dark"] .story-quote-cite { color: #94a3b8; }
+  .story-snippet[data-theme-mode="dark"] .story-author-card,
+  .story-snippet[data-theme-mode="dark"] .story-audio-card { background-color: #111827; border-color: #1f2937; }
+  .story-snippet[data-theme-mode="dark"] .author-name { color: #f8fafc; }
+  .story-snippet[data-theme-mode="dark"] .author-bio { color: #cbd5e1; }
+  .story-snippet[data-theme-mode="dark"] .skill-badge { background-color: #111827; color: #cbd5e1; border-color: #1f2937; }
+  .story-snippet[data-theme-mode="dark"] .story-inline-code { background-color: #1e293b; color: #e2e8f0; }`;
 
     if (withSelfContainedFonts) {
       return `<style>
@@ -1525,23 +1650,25 @@
   }
   ${overridesCss}
 </style>
-<div class="story-snippet" data-theme="${escapeHTML(theme.key)}">
+<div class="story-snippet" data-theme="${escapeHTML(theme.key)}" data-theme-mode="${isDark ? 'dark' : 'light'}">
 ${blocksHtml}
 </div>`;
     }
 
     return `<style>${overridesCss}
 </style>
-<div class="story-snippet story-inherit-fonts">
+<div class="story-snippet story-inherit-fonts" data-theme-mode="${isDark ? 'dark' : 'light'}">
 ${blocksHtml}
 </div>`;
   }
 
   function generateFullStandaloneHTML() {
     const theme = resolveActiveTheme();
+    const accent = state.accentColor || '#2563eb';
+    const mode = state.colorMode || 'light';
     const content = state.blocks.map(b => renderBlockHTML(b)).join('\n');
     return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme-mode="${mode}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1553,17 +1680,34 @@ ${blocksHtml}
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root {
+      --primary-color: ${accent};
+      --primary-hover: ${accent};
       --story-font-heading: ${theme.fontHeading};
       --story-font-body: ${theme.fontBody};
+      --canvas-bg: #ffffff;
+      --canvas-surface: #f8fafc;
+      --canvas-surface-border: #e2e8f0;
+      --canvas-text: #1e293b;
+      --canvas-heading: #0f172a;
+      --canvas-muted: #64748b;
+    }
+    [data-theme-mode="dark"] {
+      --canvas-bg: #0a0f1d;
+      --canvas-surface: #111827;
+      --canvas-surface-border: #1f2937;
+      --canvas-text: #cbd5e1;
+      --canvas-heading: #f8fafc;
+      --canvas-muted: #94a3b8;
     }
     body {
       margin: 0;
       padding: 0;
       font-family: var(--story-font-body);
       font-size: ${theme.baseScale || 100}%;
-      color: #1e293b;
-      background-color: #ffffff;
+      color: var(--canvas-text);
+      background-color: var(--canvas-bg);
       line-height: 1.6;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
     /* Block-Level Typography Overrides */
     .size-sm { font-size: 0.92rem !important; }
@@ -1578,9 +1722,31 @@ ${blocksHtml}
     .align-left { text-align: left !important; }
     .align-center { text-align: center !important; }
     .align-right { text-align: right !important; }
-    .story-link { color: #2563eb; text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
-    .story-link:hover { color: #1d4ed8; text-decoration: underline; }
+    .story-link { color: var(--primary-color); text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
+    .story-link:hover { color: var(--primary-hover); text-decoration: underline; }
     .story-inline-code { background-color: #f1f5f9; color: #0f172a; padding: 0.15rem 0.38rem; border-radius: 4px; font-size: 0.88em; font-family: monospace; }
+    [data-theme-mode="dark"] .story-inline-code { background-color: #1e293b; color: #e2e8f0; }
+    [data-theme-mode="dark"] .story-heading { color: var(--canvas-heading); }
+    [data-theme-mode="dark"] .story-text { color: var(--canvas-text); }
+    [data-theme-mode="dark"] .story-caption { color: var(--canvas-muted); }
+    [data-theme-mode="dark"] .story-quote-text { color: var(--canvas-heading); }
+    [data-theme-mode="dark"] .story-quote-cite { color: var(--canvas-muted); }
+    [data-theme-mode="dark"] .split-content h3 { color: var(--canvas-heading); }
+    [data-theme-mode="dark"] .split-content p { color: var(--canvas-text); }
+    [data-theme-mode="dark"] .stat-label { color: var(--canvas-heading); }
+    [data-theme-mode="dark"] .stat-sub { color: var(--canvas-muted); }
+    [data-theme-mode="dark"] .timeline-title { color: var(--canvas-heading); }
+    [data-theme-mode="dark"] .timeline-desc { color: var(--canvas-text); }
+    [data-theme-mode="dark"] .story-timeline { border-left-color: var(--canvas-surface-border); }
+    [data-theme-mode="dark"] .story-timeline .timeline-dot { border-color: var(--canvas-bg); }
+    [data-theme-mode="dark"] .story-stats-container { border-color: var(--canvas-surface-border); }
+    [data-theme-mode="dark"] .story-author-card,
+    [data-theme-mode="dark"] .story-audio-card { background-color: var(--canvas-surface); border-color: var(--canvas-surface-border); }
+    [data-theme-mode="dark"] .author-name { color: var(--canvas-heading); }
+    [data-theme-mode="dark"] .author-bio { color: var(--canvas-text); }
+    [data-theme-mode="dark"] .author-social-link { background-color: var(--canvas-surface-border); color: var(--canvas-text); }
+    [data-theme-mode="dark"] .author-social-link:hover { background-color: var(--primary-color); color: #ffffff; }
+    [data-theme-mode="dark"] .skill-badge { background-color: var(--canvas-surface); color: var(--canvas-text); border-color: var(--canvas-surface-border); }
     .story-cover {
       position: relative;
       width: 100%;
@@ -2206,6 +2372,33 @@ ${content}
       showToast('Custom typography saved & applied!', 'sliders');
     });
 
+    // Color Mode (Light / Dark) Toggle
+    document.getElementById('btnToggleColorMode')?.addEventListener('click', () => {
+      const current = state.colorMode || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyColorMode(next, true);
+    });
+
+    // Accent Color Palette Presets
+    document.querySelectorAll('[data-accent]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const hex = btn.dataset.accent;
+        const name = btn.dataset.accentName;
+        applyAccentColor(hex, name, true);
+      });
+    });
+
+    // Custom Accent Color Input
+    const inputCustomAccent = document.getElementById('inputCustomAccent');
+    if (inputCustomAccent) {
+      inputCustomAccent.addEventListener('input', (e) => {
+        applyAccentColor(e.target.value, 'Custom', false);
+      });
+      inputCustomAccent.addEventListener('change', (e) => {
+        applyAccentColor(e.target.value, 'Custom', true);
+      });
+    }
+
     // Clear Canvas
     document.getElementById('btnClearAll')?.addEventListener('click', () => {
       if (confirm('Are you sure you want to clear all blocks? You can undo this action.')) {
@@ -2259,6 +2452,8 @@ ${content}
             saveState();
             state = imported;
             applyTypography(state.typography || 'classic', false);
+            applyColorMode(state.colorMode || 'light', false);
+            applyAccentColor(state.accentColor || '#2563eb', null, false);
             renderCanvas();
             showToast('Project loaded successfully!');
           } else {
@@ -2286,6 +2481,8 @@ ${content}
     }
 
     applyTypography(state.typography || 'classic', false);
+    applyColorMode(state.colorMode || 'light', false);
+    applyAccentColor(state.accentColor || '#2563eb', null, false);
     renderCanvas();
     updateUndoRedoUI();
   }

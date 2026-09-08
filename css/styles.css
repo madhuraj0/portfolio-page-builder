@@ -13,6 +13,32 @@
   --block-hover-border: #3b82f6;
   --danger-color: #ef4444;
   --success-color: #10b981;
+
+  /* Semantic Canvas Theme Tokens */
+  --canvas-bg: #ffffff;
+  --canvas-surface: #f8fafc;
+  --canvas-surface-border: #e2e8f0;
+  --canvas-text: #1e293b;
+  --canvas-heading: #0f172a;
+  --canvas-muted: #64748b;
+  --canvas-code-bg: #f1f5f9;
+}
+
+[data-theme-mode="dark"] {
+  --editor-bg: #090d16;
+  --toolbar-bg: #0f172a;
+  --border-color: #1e293b;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+
+  /* Semantic Canvas Theme Tokens (Dark Mode) */
+  --canvas-bg: #0a0f1d;
+  --canvas-surface: #111827;
+  --canvas-surface-border: #1f2937;
+  --canvas-text: #cbd5e1;
+  --canvas-heading: #f8fafc;
+  --canvas-muted: #94a3b8;
+  --canvas-code-bg: #1e293b;
 }
 
 * {
@@ -149,11 +175,12 @@ body {
 .story-canvas {
   width: 100%;
   max-width: 100%;
-  background: #ffffff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  background: var(--canvas-bg);
+  color: var(--canvas-text);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   min-height: 80vh;
   position: relative;
-  transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, color 0.2s ease;
 }
 
 .viewport-desktop {
@@ -1167,4 +1194,133 @@ body.mode-preview .block-palette-bar {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* --------------------------------------------------------------------------
+   Dark Mode Editorial & Editor Overrides
+   -------------------------------------------------------------------------- */
+[data-theme-mode="dark"] .story-heading { color: var(--canvas-heading); }
+[data-theme-mode="dark"] .story-text { color: var(--canvas-text); }
+[data-theme-mode="dark"] .story-caption { color: var(--canvas-muted); }
+[data-theme-mode="dark"] .split-content h3 { color: var(--canvas-heading); }
+[data-theme-mode="dark"] .split-content p { color: var(--canvas-text); }
+[data-theme-mode="dark"] .stat-label { color: var(--canvas-heading); }
+[data-theme-mode="dark"] .stat-sub { color: var(--canvas-muted); }
+[data-theme-mode="dark"] .timeline-title { color: var(--canvas-heading); }
+[data-theme-mode="dark"] .timeline-desc { color: var(--canvas-text); }
+[data-theme-mode="dark"] .story-timeline { border-left-color: var(--canvas-surface-border); }
+[data-theme-mode="dark"] .story-timeline .timeline-dot { border-color: var(--canvas-bg); }
+[data-theme-mode="dark"] .story-stats-container { border-color: var(--canvas-surface-border); }
+[data-theme-mode="dark"] .callout-header { color: var(--canvas-heading); }
+[data-theme-mode="dark"] .callout-body { color: var(--canvas-text); }
+[data-theme-mode="dark"] .callout-info { background-color: rgba(59, 130, 246, 0.12); }
+[data-theme-mode="dark"] .callout-note { background-color: rgba(139, 92, 246, 0.12); }
+[data-theme-mode="dark"] .callout-tip { background-color: rgba(16, 185, 129, 0.12); }
+[data-theme-mode="dark"] .callout-warning { background-color: rgba(245, 158, 11, 0.12); }
+[data-theme-mode="dark"] .story-quote-text { color: var(--canvas-heading); }
+[data-theme-mode="dark"] .story-quote-cite { color: var(--canvas-muted); }
+[data-theme-mode="dark"] .story-author-card,
+[data-theme-mode="dark"] .story-audio-card {
+  background-color: var(--canvas-surface);
+  border-color: var(--canvas-surface-border);
+}
+[data-theme-mode="dark"] .author-name { color: var(--canvas-heading); }
+[data-theme-mode="dark"] .author-bio { color: var(--canvas-text); }
+[data-theme-mode="dark"] .author-social-link {
+  background-color: var(--canvas-surface-border);
+  color: var(--canvas-text);
+}
+[data-theme-mode="dark"] .author-social-link:hover {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+[data-theme-mode="dark"] .audio-title { color: var(--canvas-heading); }
+[data-theme-mode="dark"] .audio-artist { color: var(--canvas-muted); }
+[data-theme-mode="dark"] .skill-badge {
+  background-color: var(--canvas-surface);
+  color: var(--canvas-text);
+  border-color: var(--canvas-surface-border);
+}
+[data-theme-mode="dark"] .story-inline-code {
+  background-color: var(--canvas-code-bg);
+  color: var(--canvas-text);
+}
+[data-theme-mode="dark"] .divider-line { background-color: var(--canvas-surface-border); }
+
+/* Editor Shell in Dark Mode */
+[data-theme-mode="dark"] .editor-header {
+  background-color: var(--toolbar-bg);
+  border-bottom-color: var(--border-color);
+}
+[data-theme-mode="dark"] .block-palette-bar {
+  background-color: var(--toolbar-bg);
+  border-bottom-color: var(--border-color);
+}
+[data-theme-mode="dark"] .palette-group-title {
+  color: var(--text-muted);
+}
+[data-theme-mode="dark"] .btn-palette {
+  background-color: #1a2234;
+  border-color: #27344c;
+  color: #cbd5e1;
+}
+[data-theme-mode="dark"] .btn-palette:hover {
+  background-color: #27344c;
+  color: #ffffff;
+}
+[data-theme-mode="dark"] .brand-title {
+  color: #f8fafc;
+}
+[data-theme-mode="dark"] .dropdown-menu {
+  background-color: #111827;
+  border-color: #27344c;
+  color: #e2e8f0;
+}
+[data-theme-mode="dark"] .dropdown-item {
+  color: #e2e8f0;
+}
+[data-theme-mode="dark"] .dropdown-item:hover {
+  background-color: #1f2937;
+  color: #ffffff;
+}
+[data-theme-mode="dark"] .dropdown-header {
+  color: #94a3b8;
+}
+[data-theme-mode="dark"] .dropdown-divider {
+  border-top-color: #27344c;
+}
+[data-theme-mode="dark"] .modal-content {
+  background-color: #0d1322;
+  color: #e2e8f0;
+  border-color: #27344c;
+}
+[data-theme-mode="dark"] .modal-header,
+[data-theme-mode="dark"] .modal-footer {
+  border-color: #27344c;
+}
+[data-theme-mode="dark"] .modal-title {
+  color: #f8fafc;
+}
+[data-theme-mode="dark"] .form-label {
+  color: #cbd5e1;
+}
+[data-theme-mode="dark"] .form-control,
+[data-theme-mode="dark"] .form-select {
+  background-color: #161f33;
+  border-color: #27344c;
+  color: #f8fafc;
+}
+[data-theme-mode="dark"] .form-control:focus,
+[data-theme-mode="dark"] .form-select:focus {
+  background-color: #161f33;
+  border-color: var(--primary-color);
+  color: #f8fafc;
+}
+[data-theme-mode="dark"] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+[data-theme-mode="dark"] #customStylePanel,
+[data-theme-mode="dark"] .bg-light {
+  background-color: #161f33 !important;
+  border-color: #27344c !important;
 }
