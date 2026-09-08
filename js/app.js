@@ -1066,7 +1066,7 @@
 
     state.blocks.forEach((block, index) => {
       const blockEl = document.createElement('div');
-      blockEl.className = 'story-block';
+      blockEl.className = `story-block story-block-${block.type}`;
       blockEl.dataset.blockId = block.id;
 
       // Controls Bar (Move, Edit, Duplicate, Delete)
@@ -1098,6 +1098,29 @@
       blockEl.appendChild(actionsBar);
       blockEl.appendChild(contentEl);
       canvas.appendChild(blockEl);
+
+      // Block selection on click in edit mode (vital for mobile/tablet & interactive blocks)
+      blockEl.addEventListener('click', (e) => {
+        if (document.body.classList.contains('mode-preview')) return;
+        if (e.target.closest('.block-actions')) return;
+        if (e.target.closest('a')) {
+          e.preventDefault();
+        }
+        const wasActive = blockEl.classList.contains('is-active');
+        document.querySelectorAll('.story-block.is-active').forEach(el => {
+          if (el !== blockEl) el.classList.remove('is-active');
+        });
+        if (!wasActive) {
+          blockEl.classList.add('is-active');
+        }
+      });
+
+      // Quick Edit on double click
+      blockEl.addEventListener('dblclick', (e) => {
+        if (document.body.classList.contains('mode-preview')) return;
+        if (e.target.closest('.block-actions')) return;
+        openEditModal(block.id);
+      });
 
       // Event delegation for actions
       actionsBar.addEventListener('click', (e) => {
@@ -1221,6 +1244,25 @@
     const modalTitle = document.getElementById('blockModalTitle');
     const modalBody = document.getElementById('blockModalBody');
     const saveBtn = document.getElementById('btnSaveBlock');
+    const deleteBtn = document.getElementById('btnModalDeleteBlock');
+
+    if (deleteBtn) {
+      if (isNew) {
+        deleteBtn.classList.add('d-none');
+      } else {
+        deleteBtn.classList.remove('d-none');
+        deleteBtn.onclick = () => {
+          const idx = state.blocks.findIndex(b => b.id === block.id);
+          if (idx !== -1) {
+            saveState();
+            state.blocks.splice(idx, 1);
+            renderCanvas();
+            blockModalInstance.hide();
+            showToast(`${formatTypeName(block.type)} deleted`, 'trash-alt');
+          }
+        };
+      }
+    }
 
     modalTitle.textContent = (isNew ? 'Add ' : 'Edit ') + formatTypeName(block.type);
     modalBody.innerHTML = generateFormFields(block);
@@ -3095,8 +3137,23 @@ ${content}
     document.querySelectorAll('[data-add-block]').forEach(btn => {
       btn.addEventListener('click', () => {
         const type = btn.dataset.addBlock;
+        if (type === 'navbar') {
+          const existing = state.blocks.find(b => b.type === 'navbar');
+          if (existing) {
+            openEditModal(existing.id);
+            showToast('Editing Story Topbar');
+            return;
+          }
+        }
         openEditModal(null, true, type);
       });
+    });
+
+    // Deselect active block on canvas when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.story-block') && !e.target.closest('.block-palette-bar') && !e.target.closest('.modal')) {
+        document.querySelectorAll('.story-block.is-active').forEach(el => el.classList.remove('is-active'));
+      }
     });
 
     // Undo / Redo

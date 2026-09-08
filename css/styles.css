@@ -323,8 +323,17 @@ body {
   transition: outline 0.15s ease;
 }
 
+body.mode-edit .story-block {
+  cursor: default;
+}
+
 body.mode-edit .story-block:hover {
   outline: 2px dashed var(--block-hover-border);
+  outline-offset: -2px;
+}
+
+body.mode-edit .story-block.is-active {
+  outline: 2px solid var(--primary-color) !important;
   outline-offset: -2px;
 }
 
@@ -334,12 +343,26 @@ body.mode-edit .story-block:hover {
   position: absolute;
   top: 10px;
   right: 15px;
-  background: rgba(15, 23, 42, 0.88);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 8px;
   padding: 4px;
-  z-index: 50;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1050; /* Always above navbar (980), cover overlays, and embed frames */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.story-block-navbar {
+  position: relative;
+  z-index: 990;
+}
+
+.story-block-navbar .block-actions {
+  top: 8px;
+  right: 14px;
+  z-index: 1060;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 body.mode-edit .story-block:hover > .block-actions,
