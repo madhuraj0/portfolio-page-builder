@@ -32,8 +32,8 @@
         </h1>
         <span class="brand-badge">Portfolio</span>
 
-        <!-- Reading Time & Word Count Badge -->
-        <div class="reading-indicator d-none d-lg-flex align-items-center gap-2" id="readingIndicatorBadge" title="Estimated Reading Time & Word Count">
+        <!-- Reading Time & Word Count Badge (Always visible) -->
+        <div class="reading-indicator d-flex align-items-center gap-2" id="readingIndicatorBadge" title="Estimated Reading Time & Word Count">
           <i class="fas fa-book-open text-primary"></i>
           <span id="storyWordCount">0 words</span>
           <span class="text-muted">&middot;</span>
@@ -413,8 +413,13 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="text-muted small">Configure metadata, search indexing, and social share cards.</span>
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
+            <div class="d-flex align-items-center gap-2 mb-1 mb-md-0">
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                <i class="fas fa-book-open me-1"></i> <span id="modalStoryStats">0 words &middot; 0 min read</span>
+              </span>
+              <span class="text-muted small">Estimated reading time & word count</span>
+            </div>
             <button type="button" class="btn btn-sm btn-outline-secondary" id="btnAutoDetectSettings" title="Extract title, author, description, and image from current story blocks">
               <i class="fas fa-wand-magic-sparkles me-1 text-primary"></i> Auto-Detect from Blocks
             </button>
@@ -457,7 +462,7 @@
                 <i class="fas fa-share-nodes me-1 text-primary"></i> Live Social Card Preview
               </div>
               <div class="social-card-preview shadow-sm">
-                <div class="social-card-image-wrap" style="position: relative; height: 160px; background: #e2e8f0; overflow: hidden;">
+                <div class="social-card-image-wrap" style="position: relative; height: 160px; overflow: hidden;">
                   <img id="socialPreviewImage" src="" alt="Social Share Preview" class="w-100 h-100" style="object-fit: cover; display: block;" onerror="this.style.opacity='0'; const fb = document.getElementById('socialPreviewFallback'); if (fb) fb.style.setProperty('display', 'flex', 'important');">
                   <div id="socialPreviewFallback" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-muted" style="display: none !important;">
                     <i class="fas fa-image fa-2x mb-1 opacity-50"></i>
@@ -465,19 +470,19 @@
                   </div>
                 </div>
                 <div class="social-card-content p-3">
-                  <div class="social-card-domain text-muted small text-uppercase mb-1">
+                  <div class="social-card-domain small text-uppercase mb-1">
                     <i class="fas fa-globe me-1"></i> storybuilder.app &middot; <span id="socialPreviewAuthor">Alex Bennett</span>
                   </div>
                   <div class="social-card-title fw-bold mb-1" id="socialPreviewTitle">
                     The Silent Fjords of the North
                   </div>
-                  <div class="social-card-desc text-secondary small" id="socialPreviewDesc">
+                  <div class="social-card-desc small" id="socialPreviewDesc">
                     An expedition documenting the vanishing glaciers and quiet resilience of Arctic communities.
                   </div>
                 </div>
               </div>
 
-              <div class="alert alert-light border mt-3 py-2 px-3 small text-muted">
+              <div class="social-card-info-note border rounded mt-3 py-2 px-3 small">
                 <i class="fas fa-circle-info text-primary me-1"></i>
                 Exported HTML files will automatically embed OpenGraph, Twitter, and SEO tags.
               </div>
