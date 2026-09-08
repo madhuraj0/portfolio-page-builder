@@ -6,10 +6,10 @@
   <title>Portfolio & Story Page Builder</title>
   <meta name="description" content="A visual, distraction-free block page builder for editorial portfolios, photo essays, and long-form visual stories.">
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts for Curated Typography Themes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@500;700&family=Lora:ital,wght@0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@600;700;800&family=Roboto:wght@300;400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -58,6 +58,46 @@
           </button>
         </div>
 
+        <!-- Typography Theme Switcher -->
+        <div class="dropdown edit-only">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownTypography" data-bs-toggle="dropdown" aria-expanded="false" title="Change Story Typography">
+            <i class="fas fa-font me-1"></i> <span id="currentTypographyLabel">Editorial Classic</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="dropdownTypography">
+            <li><h6 class="dropdown-header">Story Typography</h6></li>
+            <li>
+              <button class="dropdown-item active" data-typography="classic">
+                <span class="d-block fw-semibold">Editorial Classic</span>
+                <small class="text-muted">Playfair Display + Roboto</small>
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item" data-typography="modern">
+                <span class="d-block fw-semibold">Modern Studio</span>
+                <small class="text-muted">Plus Jakarta Sans + Inter</small>
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item" data-typography="literary">
+                <span class="d-block fw-semibold">Literary Book</span>
+                <small class="text-muted">Lora + Merriweather</small>
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item" data-typography="creative">
+                <span class="d-block fw-semibold">Creative Avant-Garde</span>
+                <small class="text-muted">Space Grotesk + DM Sans</small>
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item" data-typography="minimal-mono">
+                <span class="d-block fw-semibold">Minimal Mono</span>
+                <small class="text-muted">JetBrains Mono + Inter</small>
+              </button>
+            </li>
+          </ul>
+        </div>
+
         <!-- Mode Toggle (Edit / Preview) -->
         <button type="button" class="btn btn-sm btn-outline-secondary" id="btnToggleMode">
           <i class="fas fa-eye me-1"></i> Preview
@@ -85,9 +125,16 @@
                 <i class="fas fa-download me-2 text-success"></i> Download as .html File
               </button>
             </li>
+            <li><hr class="dropdown-divider"></li>
+            <li><h6 class="dropdown-header">Article Snippet (CMS)</h6></li>
             <li>
               <button class="dropdown-item" id="btnCopySnippetHTML">
-                <i class="fas fa-code me-2 text-secondary"></i> Copy Article Snippet (CMS)
+                <i class="fas fa-code me-2 text-info"></i> Copy Snippet (Self-Contained Fonts)
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item" id="btnCopySnippetInheritHTML">
+                <i class="fas fa-font me-2 text-secondary"></i> Copy Snippet (Inherit Blog Fonts)
               </button>
             </li>
             <li><hr class="dropdown-divider"></li>
