@@ -105,6 +105,60 @@
           </ul>
         </div>
 
+        <!-- Accent Palette Dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="accentDropdownBtn" title="Theme Accent Color">
+            <span class="accent-color-indicator rounded-circle" id="currentAccentDot" style="width: 10px; height: 10px; background: #2563eb;"></span>
+            <span id="currentAccentLabel">Accent</span>
+          </button>
+          <ul class="dropdown-menu shadow-sm" id="accentPaletteMenu">
+            <li><h6 class="dropdown-header">Editorial Accents</h6></li>
+            <li>
+              <button class="dropdown-item d-flex align-items-center" data-accent="#2563eb" data-accent-name="Electric Blue">
+                <span class="rounded-circle me-2" style="width: 12px; height: 12px; background: #2563eb;"></span> Electric Blue
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item d-flex align-items-center" data-accent="#059669" data-accent-name="Emerald Editorial">
+                <span class="rounded-circle me-2" style="width: 12px; height: 12px; background: #059669;"></span> Emerald Editorial
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item d-flex align-items-center" data-accent="#e11d48" data-accent-name="Crimson Story">
+                <span class="rounded-circle me-2" style="width: 12px; height: 12px; background: #e11d48;"></span> Crimson Story
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item d-flex align-items-center" data-accent="#d97706" data-accent-name="Warm Ochre">
+                <span class="rounded-circle me-2" style="width: 12px; height: 12px; background: #d97706;"></span> Warm Ochre
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item d-flex align-items-center" data-accent="#7c3aed" data-accent-name="Violet Studio">
+                <span class="rounded-circle me-2" style="width: 12px; height: 12px; background: #7c3aed;"></span> Violet Studio
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item d-flex align-items-center" data-accent="#475569" data-accent-name="Noir Slate">
+                <span class="rounded-circle me-2" style="width: 12px; height: 12px; background: #475569;"></span> Noir Slate
+              </button>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li class="px-3 py-1">
+              <label class="form-label small mb-1 text-muted">Custom Hex Color</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="color" class="form-control form-control-color form-control-sm p-0 border-0" id="inputCustomAccent" value="#2563eb" style="width: 28px; height: 28px; cursor: pointer;">
+                <span class="small font-monospace text-muted" id="customAccentHex">#2563eb</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Color Mode Toggle (Light / Dark) -->
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnToggleColorMode" title="Toggle Light / Dark Mode">
+          <i class="fas fa-moon"></i>
+        </button>
+
         <!-- Mode Toggle (Edit / Preview) -->
         <button type="button" class="btn btn-sm btn-outline-secondary" id="btnToggleMode">
           <i class="fas fa-eye me-1"></i> Preview
