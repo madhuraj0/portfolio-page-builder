@@ -567,12 +567,18 @@
   function renderBlockHTML(block) {
     const d = block.data || {};
     switch (block.type) {
-      // 1. Cover Hero
+      // 1. Cover Hero (Supports Image & Ambient Video Backgrounds)
       case 'cover': {
         const opacity = (d.overlayOpacity || 55) / 100;
         const bgImg = sanitizeURL(d.imageUrl || '');
+        const isVideo = d.bgType === 'video' && d.videoUrl;
+        const videoSrc = isVideo ? sanitizeURL(d.videoUrl) : '';
         return `
-          <div class="story-cover" style="background-image: url('${bgImg}');">
+          <div class="story-cover" style="${!isVideo && bgImg ? `background-image: url('${bgImg}');` : ''}">
+            ${isVideo ? `
+              <video class="story-cover-video" autoplay loop muted playsinline ${bgImg ? `poster="${bgImg}"` : ''}>
+                <source src="${videoSrc}">
+              </video>` : ''}
             <div class="story-cover-overlay${getCustomStyleClasses(d)}" style="background-color: rgba(0, 0, 0, ${opacity});">
               <h1 class="story-cover-title">${escapeHTML(d.title || 'Your Title Here')}</h1>
               ${d.tagline ? `<p class="story-cover-tagline">${renderInlineMarkdown(d.tagline)}</p>` : ''}
@@ -899,6 +905,46 @@
           </div>`;
       }
 
+      // 21. Story Topbar / Navigation Header
+      case 'navbar': {
+        const linksHtml = (d.linksText || '')
+          .split('\n')
+          .map(line => line.trim())
+          .filter(line => line.length > 0)
+          .map(line => {
+            const parts = line.split('|').map(s => s.trim());
+            const label = parts[0] || '';
+            const url = parts[1] || '#';
+            return `<a href="${sanitizeURL(url)}" class="story-nav-link">${escapeHTML(label)}</a>`;
+          })
+          .join('');
+
+        const logo = d.logoUrl ? `<img src="${sanitizeURL(d.logoUrl)}" alt="Logo" class="story-nav-logo" />` : '';
+        const cta = d.ctaText ? `<a href="${sanitizeURL(d.ctaUrl || '#')}" class="btn btn-sm btn-primary story-nav-cta">${escapeHTML(d.ctaText)}</a>` : '';
+        const stickyClass = d.sticky !== false ? 'is-sticky' : '';
+        const styleClass = `style-${d.style || 'glass'}`;
+
+        return `
+          <div class="story-navbar-container ${stickyClass} ${styleClass}${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            <nav class="story-navbar">
+              <div class="story-nav-brand">
+                ${logo}
+                <div class="story-nav-brand-text">
+                  <a href="${sanitizeURL(d.brandUrl || '#')}" class="story-nav-brand-name">${escapeHTML(d.brandName || state.title || 'Story')}</a>
+                  ${d.brandSubtitle ? `<span class="story-nav-brand-sub">${escapeHTML(d.brandSubtitle)}</span>` : ''}
+                </div>
+              </div>
+              <div class="story-nav-links d-none d-md-flex align-items-center gap-4">
+                ${linksHtml}
+              </div>
+              <div class="story-nav-action d-flex align-items-center gap-2">
+                ${cta}
+              </div>
+              ${linksHtml ? `<div class="story-nav-links-mobile d-flex d-md-none">${linksHtml}</div>` : ''}
+            </nav>
+          </div>`;
+      }
+
       default:
         return `<div class="p-3 text-muted">Unknown block type</div>`;
     }
@@ -1050,6 +1096,18 @@
         type: defaultType,
         data: {}
       };
+      if (defaultType === 'navbar') {
+        block.data = {
+          brandName: state.author || state.title || 'Alex Bennett',
+          brandSubtitle: 'Visual Portfolio',
+          brandUrl: '#',
+          linksText: 'Story | #blk_1\nHighlights | #blk_4\nField Notes | #blk_6\nContact | #blk_14',
+          ctaText: 'Get in Touch',
+          ctaUrl: 'mailto:contact@example.com',
+          sticky: true,
+          style: 'glass'
+        };
+      }
     } else {
       block = state.blocks.find(b => b.id === blockId);
     }
@@ -1104,7 +1162,11 @@
       saveState();
       block.data = updatedData;
       if (isNew) {
-        state.blocks.push(block);
+        if (block.type === 'navbar') {
+          state.blocks.unshift(block);
+        } else {
+          state.blocks.push(block);
+        }
       }
       renderCanvas();
       blockModalInstance.hide();
@@ -1148,7 +1210,8 @@
       skillsPills: 'Skills / Tech Stack Pills',
       divider: 'Section Divider & Spacer',
       caption: 'Standalone Caption',
-      footer: 'Story Footer'
+      footer: 'Story Footer',
+      navbar: 'Story Topbar / Navigation Header'
     };
     return names[type] || 'Story Block';
   }
@@ -1222,14 +1285,29 @@
   function getBaseFormFields(block) {
     const d = block.data || {};
     switch (block.type) {
-      case 'cover':
+      case 'cover': {
+        const isVid = d.bgType === 'video';
         return `
-          <div class="mb-3">
-            <label class="form-label">Background Image URL</label>
-            <input type="url" class="form-control" id="field_imageUrl" value="${escapeHTML(d.imageUrl || '')}" placeholder="https://images.unsplash.com/..." required>
+          <div class="row mb-3">
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Hero Background Type</label>
+              <select class="form-select" id="field_bgType" onchange="const row = document.getElementById('coverVideoUrlRow'); if (row) row.classList.toggle('d-none', this.value !== 'video');">
+                <option value="image" ${!isVid ? 'selected' : ''}>Photo / Image</option>
+                <option value="video" ${isVid ? 'selected' : ''}>Looping Video (MP4 / WebM)</option>
+              </select>
+            </div>
+            <div class="col-md-7">
+              <label class="form-label fw-semibold">Cover Image URL (or Video Poster Fallback)</label>
+              <input type="url" class="form-control" id="field_imageUrl" value="${escapeHTML(d.imageUrl || '')}" placeholder="https://images.unsplash.com/..." required>
+            </div>
+          </div>
+          <div id="coverVideoUrlRow" class="mb-3 ${isVid ? '' : 'd-none'} p-2 bg-light rounded border">
+            <label class="form-label small fw-semibold">Direct Video File URL (.mp4 / .webm)</label>
+            <input type="url" class="form-control form-control-sm" id="field_videoUrl" value="${escapeHTML(d.videoUrl || '')}" placeholder="https://example.com/ambient-loop.mp4">
+            <div class="form-text">Ambient background video plays automatically, muted, and loops infinitely.</div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Story Headline / Title</label>
+            <label class="form-label fw-semibold">Story Headline / Title</label>
             <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || '')}" placeholder="My Epic Journey" required>
           </div>
           <div class="mb-3">
@@ -1250,6 +1328,7 @@
             <label class="form-label">Dark Overlay Opacity: <span id="opacityVal">${d.overlayOpacity || 55}%</span></label>
             <input type="range" class="form-range" id="field_overlayOpacity" min="10" max="90" value="${d.overlayOpacity || 55}" oninput="document.getElementById('opacityVal').textContent = this.value + '%'">
           </div>`;
+      }
 
       case 'heading':
         return `
@@ -1566,6 +1645,60 @@
             <textarea class="form-control" id="field_text" rows="3" placeholder="Copyright or closing statement...">${escapeHTML(d.text || '')}</textarea>
           </div>`;
 
+      case 'navbar':
+        return `
+          <div class="row mb-3">
+            <div class="col-md-7">
+              <label class="form-label fw-semibold">Brand / Site Title</label>
+              <input type="text" class="form-control" id="field_brandName" value="${escapeHTML(d.brandName || state.title || 'Alex Bennett')}" placeholder="e.g. Alex Bennett">
+            </div>
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Brand Subtitle / Tag</label>
+              <input type="text" class="form-control" id="field_brandSubtitle" value="${escapeHTML(d.brandSubtitle || 'Visual Portfolio')}" placeholder="e.g. Visual Storyteller">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Brand Link / Home URL</label>
+              <input type="text" class="form-control" id="field_brandUrl" value="${escapeHTML(d.brandUrl || '#')}" placeholder="https://... or #">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Logo Image URL (Optional)</label>
+              <input type="url" class="form-control" id="field_logoUrl" value="${escapeHTML(d.logoUrl || '')}" placeholder="https://example.com/logo.png">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Navigation Links (One link per line: <code>Label | #anchor or URL</code>)</label>
+            <textarea class="form-control font-monospace" id="field_linksText" rows="4" placeholder="Overview | #blk_1\nField Notes | #blk_6\nEquipment | #blk_11\nContact | #blk_14">${escapeHTML(d.linksText != null ? d.linksText : 'Story | #blk_1\nField Notes | #blk_6\nEquipment | #blk_11\nContact | #blk_14')}</textarea>
+            <div class="form-text">Tip: Use <code>#block_id</code> to jump smoothly to any story block, or enter full web URLs.</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Action Button Label (Optional)</label>
+              <input type="text" class="form-control" id="field_ctaText" value="${escapeHTML(d.ctaText || 'Get in Touch')}" placeholder="e.g. Get in Touch, View Resume">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Action Button Link / URL</label>
+              <input type="text" class="form-control" id="field_ctaUrl" value="${escapeHTML(d.ctaUrl || 'mailto:contact@example.com')}" placeholder="mailto:... or https://...">
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Navbar Style</label>
+              <select class="form-select" id="field_style">
+                <option value="glass" ${d.style === 'glass' || !d.style ? 'selected' : ''}>Frosted Glass (Modern Blur)</option>
+                <option value="clean" ${d.style === 'clean' ? 'selected' : ''}>Solid Clean Surface</option>
+                <option value="transparent" ${d.style === 'transparent' ? 'selected' : ''}>Transparent Overlay</option>
+              </select>
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+              <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" id="field_sticky" ${d.sticky !== false ? 'checked' : ''}>
+                <label class="form-check-label fw-semibold" for="field_sticky">Sticky Navbar (Fixed to top on scroll)</label>
+              </div>
+            </div>
+          </div>`;
+
       default:
         return `<p>No settings available for this block.</p>`;
     }
@@ -1574,7 +1707,7 @@
   function generateFormFields(block) {
     const d = block.data || {};
     let fields = getBaseFormFields(block);
-    if (['cover', 'heading', 'text', 'quote', 'callout', 'caption', 'footer', 'splitMediaText', 'ctaBanner'].includes(block.type)) {
+    if (['cover', 'heading', 'text', 'quote', 'callout', 'caption', 'footer', 'splitMediaText', 'ctaBanner', 'navbar'].includes(block.type)) {
       fields += generateCustomStyleToggle(d);
     }
     return fields;
@@ -1589,6 +1722,8 @@
 
     switch (type) {
       case 'cover':
+        data.bgType = getVal('field_bgType') || 'image';
+        data.videoUrl = getVal('field_videoUrl');
         data.imageUrl = getVal('field_imageUrl');
         data.title = getVal('field_title');
         data.tagline = getVal('field_tagline');
@@ -1689,6 +1824,17 @@
       case 'caption':
       case 'footer':
         data.text = getVal('field_text');
+        break;
+      case 'navbar':
+        data.brandName = getVal('field_brandName');
+        data.brandSubtitle = getVal('field_brandSubtitle');
+        data.brandUrl = getVal('field_brandUrl');
+        data.logoUrl = getVal('field_logoUrl');
+        data.linksText = getVal('field_linksText');
+        data.ctaText = getVal('field_ctaText');
+        data.ctaUrl = getVal('field_ctaUrl');
+        data.style = getVal('field_style') || 'glass';
+        data.sticky = document.getElementById('field_sticky')?.checked ?? true;
         break;
     }
 
@@ -1900,6 +2046,16 @@ ${blocksHtml}
       justify-content: center;
       background-size: cover;
       background-position: center;
+      overflow: hidden;
+    }
+    .story-cover-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      pointer-events: none;
     }
     .story-cover-overlay {
       position: absolute;
@@ -2347,6 +2503,143 @@ ${blocksHtml}
       padding: 3.5rem 1.5rem;
       text-align: center;
       margin-top: 4rem;
+    }
+    /* Navbar Styles */
+    .story-navbar-container {
+      width: 100%;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+      z-index: 980;
+    }
+    .story-navbar-container.is-sticky {
+      position: sticky;
+      top: 0;
+    }
+    .story-navbar-container.style-glass {
+      background-color: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    .story-navbar-container.style-clean {
+      background-color: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .story-navbar-container.style-transparent {
+      background-color: transparent;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    [data-theme-mode="dark"] .story-navbar-container.style-glass {
+      background-color: rgba(13, 19, 34, 0.88);
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+    [data-theme-mode="dark"] .story-navbar-container.style-clean {
+      background-color: #0d1322;
+      border-bottom-color: #1f293d;
+    }
+    .story-navbar {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .story-nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+    }
+    .story-nav-logo {
+      height: 32px;
+      width: auto;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+    .story-nav-brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .story-nav-brand-name {
+      font-family: var(--story-font-heading);
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--canvas-heading);
+      text-decoration: none;
+      line-height: 1.2;
+    }
+    .story-nav-brand-name:hover {
+      color: var(--primary-color);
+    }
+    .story-nav-brand-sub {
+      font-size: 0.72rem;
+      color: var(--canvas-muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .story-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .story-nav-link {
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--canvas-text);
+      text-decoration: none;
+      transition: color 0.15s ease;
+      white-space: nowrap;
+    }
+    .story-nav-link:hover {
+      color: var(--primary-color);
+    }
+    .story-nav-action {
+      display: flex;
+      align-items: center;
+    }
+    .story-nav-cta {
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.35rem 0.9rem;
+      border-radius: 9999px;
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      color: #ffffff !important;
+      text-decoration: none;
+      transition: opacity 0.15s ease;
+    }
+    .story-nav-cta:hover {
+      opacity: 0.9;
+    }
+    .story-nav-links-mobile {
+      width: 100%;
+      overflow-x: auto;
+      display: flex;
+      gap: 1.25rem;
+      padding-top: 0.4rem;
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      white-space: nowrap;
+      scrollbar-width: none;
+    }
+    .story-nav-links-mobile::-webkit-scrollbar {
+      display: none;
+    }
+    [data-theme-mode="dark"] .story-nav-links-mobile {
+      border-top-color: rgba(255, 255, 255, 0.08);
+    }
+    [data-theme-mode="dark"] .story-nav-brand-name {
+      color: #f8fafc;
+    }
+    [data-theme-mode="dark"] .story-nav-brand-sub {
+      color: #94a3b8;
+    }
+    [data-theme-mode="dark"] .story-nav-link {
+      color: #cbd5e1;
+    }
+    [data-theme-mode="dark"] .story-nav-link:hover {
+      color: #93c5fd;
     }
     @media (max-width: 768px) {
       .story-two-col-grid { grid-template-columns: 1fr; }
