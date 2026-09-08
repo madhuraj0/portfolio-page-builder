@@ -1069,10 +1069,13 @@
       blockEl.className = `story-block story-block-${block.type}`;
       blockEl.dataset.blockId = block.id;
 
-      // Controls Bar (Move, Edit, Duplicate, Delete)
+      // Controls Bar (Drag, Move, Edit, Duplicate, Delete)
       const actionsBar = document.createElement('div');
       actionsBar.className = 'block-actions';
       actionsBar.innerHTML = `
+        <button class="btn-block-action btn-drag-handle" title="Drag to Reorder" type="button">
+          <i class="fas fa-grip-vertical"></i>
+        </button>
         <button class="btn-block-action" data-action="up" title="Move Up" ${index === 0 ? 'disabled' : ''}>
           <i class="fas fa-arrow-up"></i>
         </button>
@@ -1098,6 +1101,82 @@
       blockEl.appendChild(actionsBar);
       blockEl.appendChild(contentEl);
       canvas.appendChild(blockEl);
+
+      // --- Drag and Drop Reordering Handlers ---
+      const dragHandle = actionsBar.querySelector('.btn-drag-handle');
+      if (dragHandle) {
+        dragHandle.addEventListener('mousedown', () => {
+          blockEl.setAttribute('draggable', 'true');
+        });
+        dragHandle.addEventListener('mouseup', () => {
+          blockEl.setAttribute('draggable', 'false');
+        });
+      }
+
+      blockEl.addEventListener('dragstart', (e) => {
+        if (document.body.classList.contains('mode-preview')) {
+          e.preventDefault();
+          return;
+        }
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(index));
+        blockEl.classList.add('is-dragging');
+      });
+
+      blockEl.addEventListener('dragend', () => {
+        blockEl.classList.remove('is-dragging');
+        blockEl.setAttribute('draggable', 'false');
+        document.querySelectorAll('.story-block').forEach(el => {
+          el.classList.remove('drag-over-top', 'drag-over-bottom');
+        });
+      });
+
+      blockEl.addEventListener('dragover', (e) => {
+        if (document.body.classList.contains('mode-preview')) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const rect = blockEl.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY < midY) {
+          blockEl.classList.add('drag-over-top');
+          blockEl.classList.remove('drag-over-bottom');
+        } else {
+          blockEl.classList.add('drag-over-bottom');
+          blockEl.classList.remove('drag-over-top');
+        }
+      });
+
+      blockEl.addEventListener('dragleave', () => {
+        blockEl.classList.remove('drag-over-top', 'drag-over-bottom');
+      });
+
+      blockEl.addEventListener('drop', (e) => {
+        if (document.body.classList.contains('mode-preview')) return;
+        e.preventDefault();
+        blockEl.classList.remove('drag-over-top', 'drag-over-bottom');
+        const fromIndexStr = e.dataTransfer.getData('text/plain');
+        if (!fromIndexStr && fromIndexStr !== '0') return;
+        const fromIndex = parseInt(fromIndexStr, 10);
+        if (isNaN(fromIndex)) return;
+
+        const rect = blockEl.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        let toIndex = index;
+        if (e.clientY >= midY) {
+          toIndex = index + 1;
+        }
+        if (fromIndex < toIndex) {
+          toIndex--;
+        }
+
+        if (fromIndex !== toIndex && fromIndex >= 0 && fromIndex < state.blocks.length) {
+          saveState();
+          const [movedBlock] = state.blocks.splice(fromIndex, 1);
+          state.blocks.splice(toIndex, 0, movedBlock);
+          renderCanvas();
+          showToast('Block reordered');
+        }
+      });
 
       // Block selection on click in edit mode (vital for mobile/tablet & interactive blocks)
       blockEl.addEventListener('click', (e) => {
@@ -1125,7 +1204,7 @@
       // Event delegation for actions
       actionsBar.addEventListener('click', (e) => {
         const btn = e.target.closest('button');
-        if (!btn) return;
+        if (!btn || btn.classList.contains('btn-drag-handle')) return;
         const action = btn.dataset.action;
         handleBlockAction(action, block.id, index);
       });
@@ -1177,10 +1256,202 @@
     }
   }
 
+  // --- Curated Image Asset Library & Unsplash Presets ---
+  const CURATED_PHOTOS = {
+    editorial: [
+      { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80', title: 'Alpine Valley Mist', author: 'Bailey Zindel' },
+      { url: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1600&q=80', title: 'Coastal Cliff Traveler', author: 'Sasha Freemind' },
+      { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=80', title: 'Starry Mountain Peak', author: 'Benjamin Voros' },
+      { url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1600&q=80', title: 'Morning Forest Fog', author: 'Kilian Schroeder' },
+      { url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80', title: 'Sunlight Horizon', author: 'David Marcu' },
+      { url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80', title: 'Fjord Expedition', author: 'Pietro De Grandi' }
+    ],
+    architecture: [
+      { url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80', title: 'Modern Glass Tower', author: 'Sean Pollock' },
+      { url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1600&q=80', title: 'Minimalist Interior Light', author: 'Jean-Philippe Delberghe' },
+      { url: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=1600&q=80', title: 'Geometric Curves', author: 'Lance Anderson' },
+      { url: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1600&q=80', title: 'Architectural Shadowplay', author: 'Simone Hutsch' },
+      { url: 'https://images.unsplash.com/photo-1490644658840-3f2e3f8c5625?auto=format&fit=crop&w=1600&q=80', title: 'Concrete Brutalism', author: 'Mitchell Luo' },
+      { url: 'https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1600&q=80', title: 'Spiral Museum Staircase', author: 'Klaudia Piaskowska' }
+    ],
+    nature: [
+      { url: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=1600&q=80', title: 'Morning Valley Ridge', author: 'Luca Bravo' },
+      { url: 'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=1600&q=80', title: 'Sunbeams Through Trees', author: 'Sebastian Unrau' },
+      { url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80', title: 'Turquoise Ocean Waves', author: 'Sean Oulashin' },
+      { url: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=1600&q=80', title: 'Canyon River Sunlight', author: 'Jeremy Thomas' },
+      { url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=80', title: 'Rocky Mountain Peaks', author: 'Kalashnikov' },
+      { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&q=80', title: 'Misty Redwood Forest', author: 'Matthew Smith' }
+    ],
+    portrait: [
+      { url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1600&q=80', title: 'Dramatic Studio Lighting', author: 'Aiony Haust' },
+      { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=1600&q=80', title: 'Editorial Portrait', author: 'Joseph Gonzalez' },
+      { url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1600&q=80', title: 'Outdoor Candid Byline', author: 'Valerie Elash' },
+      { url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=1600&q=80', title: 'Creative Designer', author: 'Ali Pazani' },
+      { url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1600&q=80', title: 'Natural Warm Profile', author: 'Jurica Koletić' },
+      { url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1600&q=80', title: 'Minimalist Studio Headshot', author: 'Christian Buehner' }
+    ],
+    technology: [
+      { url: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1600&q=80', title: 'Minimal Workspace Laptop', author: 'Alejandro Escamilla' },
+      { url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1600&q=80', title: 'Dark Code Editor IDE', author: 'Fotis Fotopoulos' },
+      { url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1600&q=80', title: 'Cyber Matrix Lines', author: 'Markus Spiske' },
+      { url: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=1600&q=80', title: 'Mechanical Keyboard Setup', author: 'Jay Zhang' },
+      { url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1600&q=80', title: 'Developer Desk Flatlay', author: 'Christopher Gower' },
+      { url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1600&q=80', title: 'Retro Hardware & Screens', author: 'Lorenzo Herrera' }
+    ],
+    minimal: [
+      { url: 'https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?auto=format&fit=crop&w=1600&q=80', title: 'Single Ceramic Cup', author: 'Jonas Jacobsson' },
+      { url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1600&q=80', title: 'Pastel Paper Gradients', author: 'Eberhard Grossgasteiger' },
+      { url: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=1600&q=80', title: 'Clay Vase and Shadow', author: 'Sarah Dorweiler' },
+      { url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1600&q=80', title: '3D Liquid Flowing Waves', author: 'Milad Fakurian' },
+      { url: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1600&q=80', title: 'Modern Clean Blazer', author: 'Hunters Race' },
+      { url: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=1600&q=80', title: 'Brushed Gold & Marble', author: 'NordWood Themes' }
+    ]
+  };
+
+  let activeImagePickerTarget = null;
+  let activeImagePickerMode = 'replace'; // 'replace' | 'append'
+  let stagedUploadDataUrl = null;
+
+  function openImageAssetPicker(targetInputId, mode = 'replace') {
+    activeImagePickerTarget = targetInputId;
+    activeImagePickerMode = mode;
+    stagedUploadDataUrl = null;
+    const statusEl = document.getElementById('imageUploadStatus');
+    if (statusEl) statusEl.classList.add('d-none');
+    const inputSearch = document.getElementById('inputImageSearch');
+    if (inputSearch) inputSearch.value = '';
+
+    // Reset category buttons
+    document.querySelectorAll('#imageCategoryPills button').forEach(b => {
+      b.classList.toggle('active', b.dataset.category === 'editorial');
+    });
+
+    renderPhotoGrid('editorial');
+
+    const tabEl = document.getElementById('tabUnsplash-tab');
+    if (tabEl && window.bootstrap) {
+      const tab = new bootstrap.Tab(tabEl);
+      tab.show();
+    }
+
+    imageAssetPickerModalInstance?.show();
+  }
+
+  function renderPhotoGrid(categoryOrQuery) {
+    const grid = document.getElementById('imagePickerGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    let list = [];
+    if (CURATED_PHOTOS[categoryOrQuery]) {
+      list = CURATED_PHOTOS[categoryOrQuery];
+    } else {
+      const q = String(categoryOrQuery).toLowerCase().trim();
+      const all = Object.values(CURATED_PHOTOS).flat();
+      list = all.filter(p => p.title.toLowerCase().includes(q) || p.author.toLowerCase().includes(q));
+      if (list.length === 0) {
+        list = [
+          { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80', title: `${q.charAt(0).toUpperCase() + q.slice(1)} Landscape`, author: 'Unsplash Curated' },
+          { url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1600&q=80', title: `${q.charAt(0).toUpperCase() + q.slice(1)} Atmosphere`, author: 'Unsplash Curated' },
+          { url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80', title: `${q.charAt(0).toUpperCase() + q.slice(1)} Architecture`, author: 'Unsplash Curated' },
+          { url: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=1600&q=80', title: `${q.charAt(0).toUpperCase() + q.slice(1)} Scenic`, author: 'Unsplash Curated' }
+        ];
+      }
+    }
+
+    list.forEach(photo => {
+      const card = document.createElement('div');
+      card.className = 'image-picker-card';
+      card.innerHTML = `
+        <img src="${photo.url}" alt="${escapeHTML(photo.title)}" loading="lazy">
+        <div class="card-caption">
+          <strong>${escapeHTML(photo.title)}</strong><br>
+          <span class="opacity-75">by ${escapeHTML(photo.author)}</span>
+        </div>`;
+      card.onclick = () => {
+        applyChosenImage(photo.url);
+      };
+      grid.appendChild(card);
+    });
+  }
+
+  function applyChosenImage(url) {
+    if (!activeImagePickerTarget) return;
+    const targetEl = document.getElementById(activeImagePickerTarget);
+    if (!targetEl) return;
+
+    if (activeImagePickerMode === 'append') {
+      const current = targetEl.value ? targetEl.value.trim() : '';
+      targetEl.value = current ? `${current}\n${url}` : url;
+    } else {
+      targetEl.value = url;
+    }
+    targetEl.dispatchEvent(new Event('input'));
+    targetEl.dispatchEvent(new Event('change'));
+    imageAssetPickerModalInstance?.hide();
+    showToast('Photo inserted!', 'check-circle');
+  }
+
+  function handleLocalImageUpload(file) {
+    if (!file || !file.type.startsWith('image/')) {
+      showToast('Please select a valid image file', 'exclamation-circle');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const rawDataUrl = e.target.result;
+      const img = new Image();
+      img.onload = () => {
+        const MAX_DIM = 1600;
+        let w = img.width;
+        let h = img.height;
+        if (w > MAX_DIM || h > MAX_DIM) {
+          if (w > h) {
+            h = Math.round((h * MAX_DIM) / w);
+            w = MAX_DIM;
+          } else {
+            w = Math.round((w * MAX_DIM) / h);
+            h = MAX_DIM;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const format = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        stagedUploadDataUrl = canvas.toDataURL(format, 0.85);
+
+        const previewEl = document.getElementById('uploadPreviewImg');
+        const nameEl = document.getElementById('uploadFileName');
+        const sizeEl = document.getElementById('uploadFileSize');
+        const statusEl = document.getElementById('imageUploadStatus');
+        if (previewEl) previewEl.src = stagedUploadDataUrl;
+        if (nameEl) nameEl.textContent = file.name;
+        if (sizeEl) sizeEl.textContent = `${Math.round(stagedUploadDataUrl.length / 1024)} KB ready to use`;
+        if (statusEl) statusEl.classList.remove('d-none');
+      };
+      img.src = rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function generateImageInputGroup(inputId, value, placeholder = 'https://...') {
+    return `
+      <div class="input-group">
+        <input type="url" class="form-control" id="${inputId}" value="${escapeHTML(value || '')}" placeholder="${placeholder}">
+        <button class="btn btn-outline-secondary btn-open-image-picker" type="button" data-target="${inputId}" title="Browse curated photos or upload local file">
+          <i class="fas fa-images me-1 text-primary"></i> Choose...
+        </button>
+      </div>`;
+  }
+
   // --- Modal Form Editor ---
   let blockModalInstance = null;
   let customTypographyModalInstance = null;
   let storySettingsModalInstance = null;
+  let imageAssetPickerModalInstance = null;
 
   function initModal() {
     const modalEl = document.getElementById('blockEditModal');
@@ -1194,6 +1465,10 @@
     const storyModalEl = document.getElementById('storySettingsModal');
     if (storyModalEl && window.bootstrap) {
       storySettingsModalInstance = new bootstrap.Modal(storyModalEl);
+    }
+    const imgPickerEl = document.getElementById('imageAssetPickerModal');
+    if (imgPickerEl && window.bootstrap) {
+      imageAssetPickerModalInstance = new bootstrap.Modal(imgPickerEl);
     }
   }
 
@@ -1446,7 +1721,7 @@
             </div>
             <div class="col-md-7">
               <label class="form-label fw-semibold">Cover Image URL (or Video Poster Fallback)</label>
-              <input type="url" class="form-control" id="field_imageUrl" value="${escapeHTML(d.imageUrl || '')}" placeholder="https://images.unsplash.com/..." required>
+              ${generateImageInputGroup('field_imageUrl', d.imageUrl, 'https://images.unsplash.com/...')}
             </div>
           </div>
           <div id="coverVideoUrlRow" class="mb-3 ${isVid ? '' : 'd-none'} p-2 bg-light rounded border">
@@ -1505,7 +1780,7 @@
         return `
           <div class="mb-3">
             <label class="form-label">Image URL</label>
-            <input type="url" class="form-control" id="field_imageUrl" value="${escapeHTML(d.imageUrl || '')}" placeholder="https://..." required>
+            ${generateImageInputGroup('field_imageUrl', d.imageUrl)}
           </div>
           <div class="mb-3">
             <label class="form-label">Caption</label>
@@ -1521,13 +1796,13 @@
           <div class="row">
             <div class="col-md-6 mb-3">
               <label class="form-label">Left Image URL</label>
-              <input type="url" class="form-control" id="field_img1Url" value="${escapeHTML(d.img1Url || '')}" placeholder="https://..." required>
+              ${generateImageInputGroup('field_img1Url', d.img1Url)}
               <label class="form-label mt-2">Left Image Caption</label>
               <input type="text" class="form-control" id="field_img1Caption" value="${escapeHTML(d.img1Caption || '')}" placeholder="Caption for left photo">
             </div>
             <div class="col-md-6 mb-3">
               <label class="form-label">Right Image URL</label>
-              <input type="url" class="form-control" id="field_img2Url" value="${escapeHTML(d.img2Url || '')}" placeholder="https://..." required>
+              ${generateImageInputGroup('field_img2Url', d.img2Url)}
               <label class="form-label mt-2">Right Image Caption</label>
               <input type="text" class="form-control" id="field_img2Caption" value="${escapeHTML(d.img2Caption || '')}" placeholder="Caption for right photo">
             </div>
@@ -1536,7 +1811,12 @@
       case 'gallery':
         return `
           <div class="mb-3">
-            <label class="form-label">Image URLs (one URL per line)</label>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label mb-0">Image URLs (one URL per line)</label>
+              <button class="btn btn-outline-primary btn-sm py-0 px-2 btn-open-image-picker" type="button" data-target="field_imagesText" data-mode="append">
+                <i class="fas fa-plus me-1"></i> Add Photo
+              </button>
+            </div>
             <textarea class="form-control" id="field_imagesText" rows="6" placeholder="https://images.unsplash.com/photo-1...\nhttps://images.unsplash.com/photo-2...">${escapeHTML(d.imagesText || '')}</textarea>
           </div>
           <div class="row">
@@ -1558,7 +1838,7 @@
         return `
           <div class="mb-3">
             <label class="form-label">Image URL</label>
-            <input type="url" class="form-control" id="field_imageUrl" value="${escapeHTML(d.imageUrl || '')}" placeholder="https://..." required>
+            ${generateImageInputGroup('field_imageUrl', d.imageUrl)}
           </div>
           <div class="row">
             <div class="col-md-6 mb-3">
@@ -1689,7 +1969,7 @@
           </div>
           <div class="mb-3">
             <label class="form-label">Avatar Image URL</label>
-            <input type="url" class="form-control" id="field_avatarUrl" value="${escapeHTML(d.avatarUrl || '')}" placeholder="https://...">
+            ${generateImageInputGroup('field_avatarUrl', d.avatarUrl)}
           </div>
           <div class="mb-3">
             ${generateTextFormatToolbar('field_bio', 'Biography / Background')}
@@ -1812,7 +2092,7 @@
             </div>
             <div class="col-md-6">
               <label class="form-label">Logo Image URL (Optional)</label>
-              <input type="url" class="form-control" id="field_logoUrl" value="${escapeHTML(d.logoUrl || '')}" placeholder="https://example.com/logo.png">
+              ${generateImageInputGroup('field_logoUrl', d.logoUrl, 'https://example.com/logo.png')}
             </div>
           </div>
           <div class="mb-3">
@@ -3404,6 +3684,14 @@ ${content}
     });
 
     // Export Dropdown actions
+    document.getElementById('btnPreviewNewTab')?.addEventListener('click', () => {
+      const html = generateFullStandaloneHTML();
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const previewUrl = URL.createObjectURL(blob);
+      window.open(previewUrl, '_blank');
+      showToast('Live preview opened in new tab!', 'arrow-up-right-from-square');
+    });
+
     document.getElementById('btnCopyFullHTML')?.addEventListener('click', () => {
       const html = generateFullStandaloneHTML();
       copyToClipboard(html, 'Full Page HTML copied to clipboard!');
@@ -3463,6 +3751,73 @@ ${content}
       };
       reader.readAsText(file);
       fileInput.value = '';
+    });
+
+    // Image Asset Picker Event Listeners
+    document.getElementById('imageCategoryPills')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-category]');
+      if (!btn) return;
+      document.querySelectorAll('#imageCategoryPills button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const searchInput = document.getElementById('inputImageSearch');
+      if (searchInput) searchInput.value = '';
+      renderPhotoGrid(btn.dataset.category);
+    });
+
+    const triggerImageSearch = () => {
+      const query = document.getElementById('inputImageSearch')?.value.trim();
+      if (query) {
+        document.querySelectorAll('#imageCategoryPills button').forEach(b => b.classList.remove('active'));
+        renderPhotoGrid(query);
+      }
+    };
+
+    document.getElementById('btnSearchPhotos')?.addEventListener('click', triggerImageSearch);
+    document.getElementById('inputImageSearch')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        triggerImageSearch();
+      }
+    });
+
+    const dropzone = document.getElementById('imageDropzone');
+    const localFileInput = document.getElementById('localImageFileInput');
+    if (dropzone && localFileInput) {
+      dropzone.addEventListener('click', () => localFileInput.click());
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('drag-active');
+      });
+      ['dragleave', 'dragend'].forEach(evt => {
+        dropzone.addEventListener(evt, () => dropzone.classList.remove('drag-active'));
+      });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('drag-active');
+        const file = e.dataTransfer?.files?.[0];
+        if (file) handleLocalImageUpload(file);
+      });
+      localFileInput.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (file) handleLocalImageUpload(file);
+      });
+    }
+
+    document.getElementById('btnApplyUpload')?.addEventListener('click', () => {
+      if (stagedUploadDataUrl) {
+        applyChosenImage(stagedUploadDataUrl);
+      } else {
+        showToast('No uploaded photo selected', 'exclamation-circle');
+      }
+    });
+
+    // Open image picker button listener (delegated for modal inputs and settings)
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-open-image-picker');
+      if (btn) {
+        e.preventDefault();
+        openImageAssetPicker(btn.dataset.target, btn.dataset.mode || 'replace');
+      }
     });
   }
 
