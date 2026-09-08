@@ -1,6 +1,6 @@
 /**
  * Portfolio & Story Page Builder
- * State-driven visual block editor
+ * State-driven visual block editor with 20 editorial & portfolio block types
  */
 
 (function () {
@@ -17,28 +17,27 @@
       .replace(/'/g, '&#039;');
   }
 
-  // Sanitize URL for iframe / images to prevent javascript: pseudo-protocol
+  // Sanitize URL for iframe / images / audio / links
   function sanitizeURL(url) {
     if (!url) return '';
     const trimmed = String(url).trim();
-    if (/^(https?:\/\/|\/|\.\/|data:image\/)/i.test(trimmed)) {
+    if (/^(https?:\/\/|\/|\.\/|mailto:|data:image\/)/i.test(trimmed)) {
       return trimmed;
     }
-    // Default safe fallback if protocol omitted
     if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(trimmed)) {
       return 'https://' + trimmed;
     }
     return escapeHTML(trimmed);
   }
 
-  // --- Initial / Sample State ---
+  // --- Sample Story State ---
   const SAMPLE_STORY = [
     {
-      id: 'blk_sample_1',
+      id: 'blk_1',
       type: 'cover',
       data: {
-        title: 'Chasing the Horizon',
-        tagline: 'An intimate photographic journey across remote landscapes and quiet moments.',
+        title: 'The Silent Fjords of the North',
+        tagline: 'An expedition documenting the vanishing glaciers and quiet resilience of Arctic communities.',
         byline: 'By Alex Bennett',
         dateline: 'September 2026',
         imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=80',
@@ -46,58 +45,134 @@
       }
     },
     {
-      id: 'blk_sample_2',
+      id: 'blk_2',
       type: 'heading',
       data: {
-        text: 'The Stillness of Dawn',
+        text: 'The Edge of Stillness',
         level: 'h1'
       }
     },
     {
-      id: 'blk_sample_3',
+      id: 'blk_3',
       type: 'text',
       data: {
-        text: 'Every morning begins with an unspoken promise. Before the first rays break across the ridgeline, the mountain valleys exist in a tranquil blue twilight.\n\nTraveling light with nothing more than a mechanical camera, a sketchbook, and a warm flask of tea, I set out into the misty foothills of the eastern range. The air was crisp, carrying the distinct scent of damp pine and morning dew.'
+        text: 'Every journey begins with an unspoken promise. Before dawn broke across the fjord, the water was as smooth as dark obsidian, reflecting jagged snowcapped ridges in absolute symmetry.\n\nTraveling light with mechanical cameras, audio recorders, and warm tea, we ventured into regions rarely touched by seasonal roads.'
       }
     },
     {
-      id: 'blk_sample_4',
-      type: 'wideImage',
+      id: 'blk_4',
+      type: 'stats',
+      data: {
+        stat1Num: '28',
+        stat1Label: 'Days in the Field',
+        stat1Sub: 'Off-grid expedition',
+        stat2Num: '1,420 km',
+        stat2Label: 'Terrain Covered',
+        stat2Sub: 'On foot and by kayak',
+        stat3Num: '3,800',
+        stat3Label: 'Film Photographs',
+        stat3Sub: 'Captured on 35mm & 120 film'
+      }
+    },
+    {
+      id: 'blk_5',
+      type: 'splitMediaText',
       data: {
         imageUrl: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1600&q=80',
-        caption: 'First light over the alpine meadows, captured on 35mm film.',
-        altText: 'Alpine sunrise'
+        imagePosition: 'left',
+        title: 'First Light Across the Ridge',
+        text: 'The morning mist clears slowly over alpine meadows. At this altitude, every sound is amplified: the distant rumble of glacial runoff, the crunch of gravel under boots, and the sudden flap of sea eagles soaring above.',
+        caption: 'Sunrise over eastern slopes.'
       }
     },
     {
-      id: 'blk_sample_5',
+      id: 'blk_6',
+      type: 'callout',
+      data: {
+        type: 'note',
+        title: 'Field Journal Note',
+        text: 'Temperatures dropped below -12°C during overnight bivouacs. Camera shutters required specialized low-temp lubricants to prevent freeze-up during sunrise timelapses.'
+      }
+    },
+    {
+      id: 'blk_7',
+      type: 'twoColumnImage',
+      data: {
+        img1Url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
+        img1Caption: 'Glacial valley carving through ancient granite.',
+        img2Url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+        img2Caption: 'Coastal inlets meeting open ocean currents.'
+      }
+    },
+    {
+      id: 'blk_8',
       type: 'quote',
       data: {
-        quote: 'In the depth of winter, I finally learned that within me there lay an invincible summer.',
-        author: 'Albert Camus'
+        quote: 'In wildness is the preservation of the world.',
+        author: 'Henry David Thoreau'
       }
     },
     {
-      id: 'blk_sample_6',
+      id: 'blk_9',
+      type: 'timeline',
+      data: {
+        itemsText: 'Day 1 | Departure from Tromsø | Assembled team, chartered Zodiacs, and calibrated satellite tracking equipment.\nDay 8 | Base Camp Alpha | Established weather station on northern ridge overlooking the primary ice shelf.\nDay 19 | Passage Through Storm | Heavy gale forced three days inside storm tents, testing equipment endurance.\nDay 28 | Final Rendezvous | Reached southern settlement and completed primary research logging.'
+      }
+    },
+    {
+      id: 'blk_10',
       type: 'bleedingImage',
       data: {
         imageUrl: 'https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=2000&q=80',
-        caption: 'Walking through ancient evergreen forests under heavy mist.',
-        altText: 'Mist in the forest'
+        caption: 'Old-growth boreal forest enveloped in sea mist at twilight.',
+        altText: 'Boreal forest in mist'
       }
     },
     {
-      id: 'blk_sample_7',
-      type: 'text',
+      id: 'blk_11',
+      type: 'skillsPills',
       data: {
-        text: 'Finding stillness in a hyper-connected world is an act of deliberate intention. For three weeks, no screens illuminated my evenings; only the embers of the hearth and the quiet whisper of wind through the trees.'
+        title: 'Tools & Equipment Used',
+        tags: 'Leica M10-R, Hasselblad 500C/M, Kodak Portra 400, Sennheiser Ambeo Mic, Weather Station Alpha, Solar Power Kit'
       }
     },
     {
-      id: 'blk_sample_8',
+      id: 'blk_12',
+      type: 'divider',
+      data: {
+        style: 'asterisks',
+        spacing: 'md'
+      }
+    },
+    {
+      id: 'blk_13',
+      type: 'authorBio',
+      data: {
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+        name: 'Alex Bennett',
+        role: 'Documentary Photographer & Visual Journalist',
+        bio: 'Alex explores the intersection of human endurance, remote climates, and ecological memory. Contributing photojournalist to National Geographic and The Alpine Journal.',
+        websiteUrl: 'https://example.com',
+        githubUrl: 'https://github.com',
+        twitterUrl: 'https://twitter.com',
+        email: 'alex@example.com'
+      }
+    },
+    {
+      id: 'blk_14',
+      type: 'ctaBanner',
+      data: {
+        heading: 'Bring This Visual Story to Your Publication',
+        subtext: 'High-resolution prints, exhibition licensing, and extended field journals are available for editorial syndication.',
+        buttonText: 'Request Licensing & Media Kit',
+        buttonUrl: 'mailto:contact@example.com'
+      }
+    },
+    {
+      id: 'blk_15',
       type: 'footer',
       data: {
-        text: '© 2026 Alex Bennett. All rights reserved. Built with Portfolio Page Builder.'
+        text: '© 2026 Alex Bennett. All rights reserved. Crafted with Portfolio & Story Page Builder.'
       }
     }
   ];
@@ -110,14 +185,12 @@
 
   const undoStack = [];
   const redoStack = [];
-
-  // --- Persistence ---
-  const STORAGE_KEY = 'portfolio_builder_draft_v2';
+  const STORAGE_KEY = 'portfolio_builder_draft_v3';
 
   function saveState(recordHistory = true) {
     if (recordHistory) {
       undoStack.push(JSON.stringify(state));
-      redoStack.length = 0; // clear redo on new action
+      redoStack.length = 0;
       if (undoStack.length > 30) undoStack.shift();
       updateUndoRedoUI();
     }
@@ -151,8 +224,7 @@
   function undo() {
     if (undoStack.length === 0) return;
     redoStack.push(JSON.stringify(state));
-    const previous = JSON.parse(undoStack.pop());
-    state = previous;
+    state = JSON.parse(undoStack.pop());
     renderCanvas();
     updateUndoRedoUI();
     showToast('Action undone');
@@ -161,8 +233,7 @@
   function redo() {
     if (redoStack.length === 0) return;
     undoStack.push(JSON.stringify(state));
-    const next = JSON.parse(redoStack.pop());
-    state = next;
+    state = JSON.parse(redoStack.pop());
     renderCanvas();
     updateUndoRedoUI();
     showToast('Action redone');
@@ -186,10 +257,11 @@
     }, 2800);
   }
 
-  // --- Block Rendering Helpers ---
+  // --- Block Rendering Helpers (All 20 Blocks) ---
   function renderBlockHTML(block) {
     const d = block.data || {};
     switch (block.type) {
+      // 1. Cover Hero
       case 'cover': {
         const opacity = (d.overlayOpacity || 55) / 100;
         const bgImg = sanitizeURL(d.imageUrl || '');
@@ -205,6 +277,8 @@
             </div>
           </div>`;
       }
+
+      // 2. Heading
       case 'heading': {
         const tag = ['h1', 'h2', 'h3'].includes(d.level) ? d.level : 'h1';
         return `
@@ -212,12 +286,16 @@
             <${tag} class="story-heading">${escapeHTML(d.text || 'Section Heading')}</${tag}>
           </div>`;
       }
+
+      // 3. Text
       case 'text': {
         return `
           <div class="story-text-container">
             <p class="story-text">${escapeHTML(d.text || '')}</p>
           </div>`;
       }
+
+      // 4. Wide Image
       case 'wideImage': {
         const imgUrl = sanitizeURL(d.imageUrl || '');
         return `
@@ -228,6 +306,8 @@
             </figure>
           </div>`;
       }
+
+      // 5. Bleeding Image
       case 'bleedingImage': {
         const imgUrl = sanitizeURL(d.imageUrl || '');
         return `
@@ -236,6 +316,8 @@
             ${d.caption ? `<div class="story-caption">${escapeHTML(d.caption)}</div>` : ''}
           </div>`;
       }
+
+      // 6. Pull Quote
       case 'quote': {
         return `
           <div class="story-quote-container">
@@ -245,6 +327,8 @@
             </blockquote>
           </div>`;
       }
+
+      // 7. Web Embed
       case 'embed': {
         const embedUrl = sanitizeURL(d.url || '');
         return `
@@ -255,18 +339,247 @@
             ${d.caption ? `<div class="story-caption">${escapeHTML(d.caption)}</div>` : ''}
           </div>`;
       }
+
+      // 8. Standalone Caption
       case 'caption': {
         return `
           <div class="story-standalone-caption">
             <p class="story-caption"><em>${escapeHTML(d.text || '')}</em></p>
           </div>`;
       }
+
+      // 9. Footer
       case 'footer': {
         return `
           <footer class="story-footer">
             <p>${escapeHTML(d.text || '')}</p>
           </footer>`;
       }
+
+      // 10. Two-Column Image Grid
+      case 'twoColumnImage': {
+        const img1 = sanitizeURL(d.img1Url || '');
+        const img2 = sanitizeURL(d.img2Url || '');
+        return `
+          <div class="story-two-col-container">
+            <div class="story-two-col-grid">
+              <div class="story-col-image">
+                <figure>
+                  <img src="${img1}" alt="${escapeHTML(d.img1Caption || 'Photo 1')}" loading="lazy" />
+                  ${d.img1Caption ? `<figcaption class="story-caption">${escapeHTML(d.img1Caption)}</figcaption>` : ''}
+                </figure>
+              </div>
+              <div class="story-col-image">
+                <figure>
+                  <img src="${img2}" alt="${escapeHTML(d.img2Caption || 'Photo 2')}" loading="lazy" />
+                  ${d.img2Caption ? `<figcaption class="story-caption">${escapeHTML(d.img2Caption)}</figcaption>` : ''}
+                </figure>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      // 11. Multi-Photo Gallery Grid
+      case 'gallery': {
+        const urls = (d.imagesText || '')
+          .split('\n')
+          .map(u => u.trim())
+          .filter(Boolean);
+        const cols = [2, 3, 4].includes(parseInt(d.columns, 10)) ? d.columns : '3';
+        const items = urls.map(u => `
+          <div class="gallery-item">
+            <img src="${sanitizeURL(u)}" alt="Gallery image" loading="lazy" />
+          </div>
+        `).join('');
+
+        return `
+          <div class="story-gallery-container">
+            <div class="story-gallery-grid cols-${cols}">
+              ${items || '<p class="text-muted text-center p-3">No images added</p>'}
+            </div>
+            ${d.caption ? `<div class="story-caption mt-2">${escapeHTML(d.caption)}</div>` : ''}
+          </div>`;
+      }
+
+      // 12. Split Media + Text (50/50 Layout)
+      case 'splitMediaText': {
+        const imgUrl = sanitizeURL(d.imageUrl || '');
+        const posClass = d.imagePosition === 'right' ? 'media-right' : 'media-left';
+        return `
+          <div class="story-split-container">
+            <div class="story-split-row ${posClass}">
+              <div class="split-media">
+                <img src="${imgUrl}" alt="${escapeHTML(d.title || 'Image')}" loading="lazy" />
+                ${d.caption ? `<div class="story-caption">${escapeHTML(d.caption)}</div>` : ''}
+              </div>
+              <div class="split-content">
+                <h3>${escapeHTML(d.title || '')}</h3>
+                <p>${escapeHTML(d.text || '')}</p>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      // 13. Big Stats / Key Metrics Highlight
+      case 'stats': {
+        const stats = [
+          { num: d.stat1Num, label: d.stat1Label, sub: d.stat1Sub },
+          { num: d.stat2Num, label: d.stat2Label, sub: d.stat2Sub },
+          { num: d.stat3Num, label: d.stat3Label, sub: d.stat3Sub }
+        ].filter(s => s.num || s.label);
+
+        const rendered = stats.map(s => `
+          <div class="stat-item">
+            <div class="stat-number">${escapeHTML(s.num || '0')}</div>
+            <div class="stat-label">${escapeHTML(s.label || '')}</div>
+            ${s.sub ? `<div class="stat-sub">${escapeHTML(s.sub)}</div>` : ''}
+          </div>
+        `).join('');
+
+        return `
+          <div class="story-stats-container">
+            <div class="story-stats-grid">
+              ${rendered}
+            </div>
+          </div>`;
+      }
+
+      // 14. Timeline / Milestones
+      case 'timeline': {
+        const lines = (d.itemsText || '').split('\n').filter(Boolean);
+        const entries = lines.map(line => {
+          const parts = line.split('|').map(p => p.trim());
+          const date = parts[0] || '';
+          const title = parts[1] || '';
+          const desc = parts[2] || '';
+          return `
+            <div class="timeline-entry">
+              <div class="timeline-dot"></div>
+              ${date ? `<div class="timeline-date">${escapeHTML(date)}</div>` : ''}
+              ${title ? `<div class="timeline-title">${escapeHTML(title)}</div>` : ''}
+              ${desc ? `<p class="timeline-desc">${escapeHTML(desc)}</p>` : ''}
+            </div>`;
+        }).join('');
+
+        return `
+          <div class="story-timeline-container">
+            <div class="story-timeline">
+              ${entries || '<p class="text-muted">No timeline items</p>'}
+            </div>
+          </div>`;
+      }
+
+      // 15. Callout / Aside Box
+      case 'callout': {
+        const typeClass = ['info', 'note', 'tip', 'warning'].includes(d.type) ? `callout-${d.type}` : 'callout-info';
+        const icons = {
+          info: 'info-circle',
+          note: 'bookmark',
+          tip: 'lightbulb',
+          warning: 'exclamation-triangle'
+        };
+        const icon = icons[d.type] || 'info-circle';
+        return `
+          <div class="story-callout-container">
+            <aside class="story-callout ${typeClass}">
+              ${d.title ? `<div class="callout-header"><i class="fas fa-${icon}"></i> ${escapeHTML(d.title)}</div>` : ''}
+              <p class="callout-body">${escapeHTML(d.text || '')}</p>
+            </aside>
+          </div>`;
+      }
+
+      // 16. Audio / Field Recording Player
+      case 'audioPlayer': {
+        const audioUrl = sanitizeURL(d.audioUrl || '');
+        return `
+          <div class="story-audio-container">
+            <div class="story-audio-card">
+              <div class="audio-icon-box">
+                <i class="fas fa-volume-high"></i>
+              </div>
+              <div class="audio-info">
+                <div class="audio-title">${escapeHTML(d.title || 'Audio Recording')}</div>
+                ${d.artist ? `<div class="audio-artist">${escapeHTML(d.artist)}</div>` : ''}
+                <audio controls preload="none">
+                  <source src="${audioUrl}">
+                  Your browser does not support audio playback.
+                </audio>
+              </div>
+            </div>
+            ${d.caption ? `<div class="story-caption">${escapeHTML(d.caption)}</div>` : ''}
+          </div>`;
+      }
+
+      // 17. Author Profile / Bio Card
+      case 'authorBio': {
+        const avatar = sanitizeURL(d.avatarUrl || '');
+        return `
+          <div class="story-author-container">
+            <div class="story-author-card">
+              ${avatar ? `<img src="${avatar}" alt="${escapeHTML(d.name || 'Author')}" class="author-avatar" />` : ''}
+              <div class="author-info">
+                <h4 class="author-name">${escapeHTML(d.name || 'Author Name')}</h4>
+                ${d.role ? `<div class="author-role">${escapeHTML(d.role)}</div>` : ''}
+                ${d.bio ? `<p class="author-bio">${escapeHTML(d.bio)}</p>` : ''}
+                <div class="author-socials">
+                  ${d.websiteUrl ? `<a href="${sanitizeURL(d.websiteUrl)}" target="_blank" rel="noopener" class="author-social-link" title="Website"><i class="fas fa-globe"></i></a>` : ''}
+                  ${d.githubUrl ? `<a href="${sanitizeURL(d.githubUrl)}" target="_blank" rel="noopener" class="author-social-link" title="GitHub"><i class="fab fa-github"></i></a>` : ''}
+                  ${d.twitterUrl ? `<a href="${sanitizeURL(d.twitterUrl)}" target="_blank" rel="noopener" class="author-social-link" title="Twitter / X"><i class="fab fa-x-twitter"></i></a>` : ''}
+                  ${d.email ? `<a href="mailto:${escapeHTML(d.email)}" class="author-social-link" title="Email"><i class="fas fa-envelope"></i></a>` : ''}
+                </div>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      // 18. Call-to-Action (CTA) Banner
+      case 'ctaBanner': {
+        const btnUrl = sanitizeURL(d.buttonUrl || '#');
+        return `
+          <div class="story-cta-container">
+            <div class="story-cta-box">
+              <h3 class="cta-heading">${escapeHTML(d.heading || 'Take the Next Step')}</h3>
+              ${d.subtext ? `<p class="cta-subtext">${escapeHTML(d.subtext)}</p>` : ''}
+              <a href="${btnUrl}" target="_blank" rel="noopener" class="btn-cta">
+                ${escapeHTML(d.buttonText || 'Learn More')} <i class="fas fa-arrow-right ms-1"></i>
+              </a>
+            </div>
+          </div>`;
+      }
+
+      // 19. Skills / Tools Pills
+      case 'skillsPills': {
+        const pills = (d.tags || '')
+          .split(',')
+          .map(t => t.trim())
+          .filter(Boolean);
+        const rendered = pills.map(p => `<span class="skill-badge">${escapeHTML(p)}</span>`).join('');
+        return `
+          <div class="story-skills-container">
+            ${d.title ? `<div class="skills-heading">${escapeHTML(d.title)}</div>` : ''}
+            <div class="skills-wrapper">
+              ${rendered || '<span class="text-muted">No tags added</span>'}
+            </div>
+          </div>`;
+      }
+
+      // 20. Section Divider & Spacer
+      case 'divider': {
+        const spacing = ['sm', 'md', 'lg'].includes(d.spacing) ? d.spacing : 'md';
+        let inner = '<hr class="divider-line" />';
+        if (d.style === 'asterisks') {
+          inner = '<span class="divider-asterisks">* * *</span>';
+        } else if (d.style === 'dots') {
+          inner = '<span class="divider-dots">• • •</span>';
+        } else if (d.style === 'space') {
+          inner = '';
+        }
+        return `
+          <div class="story-divider-container spacing-${spacing}">
+            ${inner}
+          </div>`;
+      }
+
       default:
         return `<div class="p-3 text-muted">Unknown block type</div>`;
     }
@@ -418,7 +731,6 @@
     modalTitle.textContent = (isNew ? 'Add ' : 'Edit ') + formatTypeName(block.type);
     modalBody.innerHTML = generateFormFields(block);
 
-    // Save button click
     saveBtn.onclick = () => {
       const updatedData = extractFormData(block.type);
       saveState();
@@ -441,8 +753,19 @@
       text: 'Paragraph Text',
       wideImage: 'Wide Image',
       bleedingImage: 'Bleeding Full-Bleed Image',
+      twoColumnImage: 'Two-Column Image Grid',
+      gallery: 'Multi-Photo Gallery Grid',
+      splitMediaText: 'Split Media + Text (50/50)',
+      stats: 'Big Stats & Key Metrics',
+      timeline: 'Timeline & Milestones',
+      callout: 'Callout / Aside Box',
       quote: 'Pull Quote',
       embed: 'Web Embed (YouTube / iframe)',
+      audioPlayer: 'Audio / Field Recording',
+      authorBio: 'Author Profile / Bio Card',
+      ctaBanner: 'Call-to-Action (CTA) Banner',
+      skillsPills: 'Skills / Tech Stack Pills',
+      divider: 'Section Divider & Spacer',
       caption: 'Standalone Caption',
       footer: 'Story Footer'
     };
@@ -519,6 +842,222 @@
             <input type="text" class="form-control" id="field_altText" value="${escapeHTML(d.altText || '')}" placeholder="Visual description for screen readers">
           </div>`;
 
+      case 'twoColumnImage':
+        return `
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Left Image URL</label>
+              <input type="url" class="form-control" id="field_img1Url" value="${escapeHTML(d.img1Url || '')}" placeholder="https://..." required>
+              <label class="form-label mt-2">Left Image Caption</label>
+              <input type="text" class="form-control" id="field_img1Caption" value="${escapeHTML(d.img1Caption || '')}" placeholder="Caption for left photo">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Right Image URL</label>
+              <input type="url" class="form-control" id="field_img2Url" value="${escapeHTML(d.img2Url || '')}" placeholder="https://..." required>
+              <label class="form-label mt-2">Right Image Caption</label>
+              <input type="text" class="form-control" id="field_img2Caption" value="${escapeHTML(d.img2Caption || '')}" placeholder="Caption for right photo">
+            </div>
+          </div>`;
+
+      case 'gallery':
+        return `
+          <div class="mb-3">
+            <label class="form-label">Image URLs (one URL per line)</label>
+            <textarea class="form-control" id="field_imagesText" rows="6" placeholder="https://images.unsplash.com/photo-1...\nhttps://images.unsplash.com/photo-2...">${escapeHTML(d.imagesText || '')}</textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Columns</label>
+              <select class="form-select" id="field_columns">
+                <option value="2" ${d.columns === '2' ? 'selected' : ''}>2 Columns</option>
+                <option value="3" ${d.columns === '3' || !d.columns ? 'selected' : ''}>3 Columns</option>
+                <option value="4" ${d.columns === '4' ? 'selected' : ''}>4 Columns</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Overall Gallery Caption</label>
+              <input type="text" class="form-control" id="field_caption" value="${escapeHTML(d.caption || '')}" placeholder="Optional gallery notes">
+            </div>
+          </div>`;
+
+      case 'splitMediaText':
+        return `
+          <div class="mb-3">
+            <label class="form-label">Image URL</label>
+            <input type="url" class="form-control" id="field_imageUrl" value="${escapeHTML(d.imageUrl || '')}" placeholder="https://..." required>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Image Placement</label>
+              <select class="form-select" id="field_imagePosition">
+                <option value="left" ${d.imagePosition === 'left' || !d.imagePosition ? 'selected' : ''}>Image Left, Text Right</option>
+                <option value="right" ${d.imagePosition === 'right' ? 'selected' : ''}>Image Right, Text Left</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Image Caption</label>
+              <input type="text" class="form-control" id="field_caption" value="${escapeHTML(d.caption || '')}" placeholder="Optional photo caption">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Section Title</label>
+            <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || '')}" placeholder="Title of this feature">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Narrative Text</label>
+            <textarea class="form-control" id="field_text" rows="5" placeholder="Narrative text describing the image...">${escapeHTML(d.text || '')}</textarea>
+          </div>`;
+
+      case 'stats':
+        return `
+          <div class="row mb-3 pb-2 border-bottom">
+            <div class="col-md-4"><label class="form-label">Metric 1 (Number)</label><input type="text" class="form-control" id="field_stat1Num" value="${escapeHTML(d.stat1Num || '')}" placeholder="14+"></div>
+            <div class="col-md-4"><label class="form-label">Label</label><input type="text" class="form-control" id="field_stat1Label" value="${escapeHTML(d.stat1Label || '')}" placeholder="Countries Explored"></div>
+            <div class="col-md-4"><label class="form-label">Subtitle (Optional)</label><input type="text" class="form-control" id="field_stat1Sub" value="${escapeHTML(d.stat1Sub || '')}" placeholder="Over 6 months"></div>
+          </div>
+          <div class="row mb-3 pb-2 border-bottom">
+            <div class="col-md-4"><label class="form-label">Metric 2 (Number)</label><input type="text" class="form-control" id="field_stat2Num" value="${escapeHTML(d.stat2Num || '')}" placeholder="250k"></div>
+            <div class="col-md-4"><label class="form-label">Label</label><input type="text" class="form-control" id="field_stat2Label" value="${escapeHTML(d.stat2Label || '')}" placeholder="Total Readers"></div>
+            <div class="col-md-4"><label class="form-label">Subtitle (Optional)</label><input type="text" class="form-control" id="field_stat2Sub" value="${escapeHTML(d.stat2Sub || '')}" placeholder="Global audience"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-4"><label class="form-label">Metric 3 (Number)</label><input type="text" class="form-control" id="field_stat3Num" value="${escapeHTML(d.stat3Num || '')}" placeholder="100%"></div>
+            <div class="col-md-4"><label class="form-label">Label</label><input type="text" class="form-control" id="field_stat3Label" value="${escapeHTML(d.stat3Label || '')}" placeholder="Organic Coverage"></div>
+            <div class="col-md-4"><label class="form-label">Subtitle (Optional)</label><input type="text" class="form-control" id="field_stat3Sub" value="${escapeHTML(d.stat3Sub || '')}" placeholder="Zero sponsors"></div>
+          </div>`;
+
+      case 'timeline':
+        return `
+          <div class="mb-3">
+            <label class="form-label">Timeline Items (One item per line: <code>Date | Title | Description</code>)</label>
+            <textarea class="form-control" id="field_itemsText" rows="6" placeholder="2022 | Expedition Begins | Started preparation and planning.\n2024 | First Publication | Photo book published.">${escapeHTML(d.itemsText || '')}</textarea>
+            <div class="form-text">Separate the 3 parts with a vertical bar <code>|</code></div>
+          </div>`;
+
+      case 'callout':
+        return `
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Callout Type</label>
+              <select class="form-select" id="field_type">
+                <option value="info" ${d.type === 'info' ? 'selected' : ''}>Info (Blue)</option>
+                <option value="note" ${d.type === 'note' ? 'selected' : ''}>Note (Purple)</option>
+                <option value="tip" ${d.type === 'tip' ? 'selected' : ''}>Tip (Green)</option>
+                <option value="warning" ${d.type === 'warning' ? 'selected' : ''}>Warning (Amber)</option>
+              </select>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Box Title</label>
+              <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || '')}" placeholder="Behind the Scenes...">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Content Text</label>
+            <textarea class="form-control" id="field_text" rows="4" placeholder="Highlighted note or methodology details...">${escapeHTML(d.text || '')}</textarea>
+          </div>`;
+
+      case 'audioPlayer':
+        return `
+          <div class="mb-3">
+            <label class="form-label">Audio File URL (.mp3 / .wav / .ogg)</label>
+            <input type="url" class="form-control" id="field_audioUrl" value="${escapeHTML(d.audioUrl || '')}" placeholder="https://example.com/soundscape.mp3" required>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Track / Field Recording Title</label>
+              <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || '')}" placeholder="Fjord Dawn Ambiance">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Artist / Narrator</label>
+              <input type="text" class="form-control" id="field_artist" value="${escapeHTML(d.artist || '')}" placeholder="Recorded on location by Alex">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Optional Caption</label>
+            <input type="text" class="form-control" id="field_caption" value="${escapeHTML(d.caption || '')}" placeholder="Recorded with binaural microphones.">
+          </div>`;
+
+      case 'authorBio':
+        return `
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Author Name</label>
+              <input type="text" class="form-control" id="field_name" value="${escapeHTML(d.name || '')}" placeholder="Alex Bennett" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Role / Byline Title</label>
+              <input type="text" class="form-control" id="field_role" value="${escapeHTML(d.role || '')}" placeholder="Documentary Photographer">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Avatar Image URL</label>
+            <input type="url" class="form-control" id="field_avatarUrl" value="${escapeHTML(d.avatarUrl || '')}" placeholder="https://...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Biography</label>
+            <textarea class="form-control" id="field_bio" rows="3" placeholder="Brief author or creator summary...">${escapeHTML(d.bio || '')}</textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-3 mb-3"><label class="form-label">Website</label><input type="url" class="form-control" id="field_websiteUrl" value="${escapeHTML(d.websiteUrl || '')}" placeholder="https://..."></div>
+            <div class="col-md-3 mb-3"><label class="form-label">GitHub</label><input type="url" class="form-control" id="field_githubUrl" value="${escapeHTML(d.githubUrl || '')}" placeholder="https://github.com/..."></div>
+            <div class="col-md-3 mb-3"><label class="form-label">Twitter / X</label><input type="url" class="form-control" id="field_twitterUrl" value="${escapeHTML(d.twitterUrl || '')}" placeholder="https://x.com/..."></div>
+            <div class="col-md-3 mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="field_email" value="${escapeHTML(d.email || '')}" placeholder="alex@..."></div>
+          </div>`;
+
+      case 'ctaBanner':
+        return `
+          <div class="mb-3">
+            <label class="form-label">Banner Headline</label>
+            <input type="text" class="form-control" id="field_heading" value="${escapeHTML(d.heading || '')}" placeholder="Ready to collaborate?" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descriptive Subtext</label>
+            <textarea class="form-control" id="field_subtext" rows="2" placeholder="Available for assignments, exhibitions, and commissions.">${escapeHTML(d.subtext || '')}</textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Button Text</label>
+              <input type="text" class="form-control" id="field_buttonText" value="${escapeHTML(d.buttonText || '')}" placeholder="Get in Touch">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Button Destination URL</label>
+              <input type="text" class="form-control" id="field_buttonUrl" value="${escapeHTML(d.buttonUrl || '')}" placeholder="mailto:you@example.com or https://...">
+            </div>
+          </div>`;
+
+      case 'skillsPills':
+        return `
+          <div class="mb-3">
+            <label class="form-label">Section Title</label>
+            <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || '')}" placeholder="Equipment & Technical Stack">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tags / Skills (Comma-separated)</label>
+            <textarea class="form-control" id="field_tags" rows="3" placeholder="Leica M10, 35mm Film, Drone Cinematography, Lightroom, GPS Mapping">${escapeHTML(d.tags || '')}</textarea>
+          </div>`;
+
+      case 'divider':
+        return `
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Divider Style</label>
+              <select class="form-select" id="field_style">
+                <option value="line" ${d.style === 'line' || !d.style ? 'selected' : ''}>Hairline Rule (—)</option>
+                <option value="asterisks" ${d.style === 'asterisks' ? 'selected' : ''}>Editorial Asterisks (* * *)</option>
+                <option value="dots" ${d.style === 'dots' ? 'selected' : ''}>Subtle Dots (• • •)</option>
+                <option value="space" ${d.style === 'space' ? 'selected' : ''}>Pure Whitespace Spacer</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Vertical Spacing</label>
+              <select class="form-select" id="field_spacing">
+                <option value="sm" ${d.spacing === 'sm' ? 'selected' : ''}>Small (1.5rem)</option>
+                <option value="md" ${d.spacing === 'md' || !d.spacing ? 'selected' : ''}>Medium (2.75rem)</option>
+                <option value="lg" ${d.spacing === 'lg' ? 'selected' : ''}>Large (4.5rem)</option>
+              </select>
+            </div>
+          </div>`;
+
       case 'quote':
         return `
           <div class="mb-3">
@@ -590,6 +1129,73 @@
         data.caption = getVal('field_caption');
         data.altText = getVal('field_altText');
         break;
+      case 'twoColumnImage':
+        data.img1Url = getVal('field_img1Url');
+        data.img1Caption = getVal('field_img1Caption');
+        data.img2Url = getVal('field_img2Url');
+        data.img2Caption = getVal('field_img2Caption');
+        break;
+      case 'gallery':
+        data.imagesText = getVal('field_imagesText');
+        data.columns = getVal('field_columns');
+        data.caption = getVal('field_caption');
+        break;
+      case 'splitMediaText':
+        data.imageUrl = getVal('field_imageUrl');
+        data.imagePosition = getVal('field_imagePosition');
+        data.title = getVal('field_title');
+        data.text = getVal('field_text');
+        data.caption = getVal('field_caption');
+        break;
+      case 'stats':
+        data.stat1Num = getVal('field_stat1Num');
+        data.stat1Label = getVal('field_stat1Label');
+        data.stat1Sub = getVal('field_stat1Sub');
+        data.stat2Num = getVal('field_stat2Num');
+        data.stat2Label = getVal('field_stat2Label');
+        data.stat2Sub = getVal('field_stat2Sub');
+        data.stat3Num = getVal('field_stat3Num');
+        data.stat3Label = getVal('field_stat3Label');
+        data.stat3Sub = getVal('field_stat3Sub');
+        break;
+      case 'timeline':
+        data.itemsText = getVal('field_itemsText');
+        break;
+      case 'callout':
+        data.type = getVal('field_type');
+        data.title = getVal('field_title');
+        data.text = getVal('field_text');
+        break;
+      case 'audioPlayer':
+        data.audioUrl = getVal('field_audioUrl');
+        data.title = getVal('field_title');
+        data.artist = getVal('field_artist');
+        data.caption = getVal('field_caption');
+        break;
+      case 'authorBio':
+        data.avatarUrl = getVal('field_avatarUrl');
+        data.name = getVal('field_name');
+        data.role = getVal('field_role');
+        data.bio = getVal('field_bio');
+        data.websiteUrl = getVal('field_websiteUrl');
+        data.githubUrl = getVal('field_githubUrl');
+        data.twitterUrl = getVal('field_twitterUrl');
+        data.email = getVal('field_email');
+        break;
+      case 'ctaBanner':
+        data.heading = getVal('field_heading');
+        data.subtext = getVal('field_subtext');
+        data.buttonText = getVal('field_buttonText');
+        data.buttonUrl = getVal('field_buttonUrl');
+        break;
+      case 'skillsPills':
+        data.title = getVal('field_title');
+        data.tags = getVal('field_tags');
+        break;
+      case 'divider':
+        data.style = getVal('field_style');
+        data.spacing = getVal('field_spacing');
+        break;
       case 'quote':
         data.quote = getVal('field_quote');
         data.author = getVal('field_author');
@@ -621,7 +1227,8 @@
   <title>${escapeHTML(state.title || 'Portfolio Story')}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -723,11 +1330,310 @@
       margin-top: 0.75rem;
       text-align: center;
     }
-    .story-quote-container {
+    .story-two-col-container {
+      max-width: 1040px;
+      margin: 2.5rem auto;
+      padding: 0 1rem;
+    }
+    .story-two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .story-col-image figure { margin: 0; }
+    .story-col-image img {
+      width: 100%;
+      height: 380px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    .story-gallery-container {
+      max-width: 1080px;
+      margin: 3rem auto;
+      padding: 0 1rem;
+    }
+    .story-gallery-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    .story-gallery-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .story-gallery-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .story-gallery-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .gallery-item {
+      overflow: hidden;
+      border-radius: 6px;
+    }
+    .gallery-item img {
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      display: block;
+    }
+    .story-split-container {
+      max-width: 1040px;
+      margin: 3rem auto;
+      padding: 0 1.25rem;
+    }
+    .story-split-row {
+      display: flex;
+      align-items: center;
+      gap: 3rem;
+    }
+    .story-split-row.media-right {
+      flex-direction: row-reverse;
+    }
+    .split-media, .split-content {
+      flex: 1;
+    }
+    .split-media img {
+      width: 100%;
+      height: 420px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .split-content h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .split-content p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #475569;
+    }
+    .story-stats-container {
+      max-width: 960px;
+      margin: 3.5rem auto;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .story-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      text-align: center;
+    }
+    .stat-number {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(2.5rem, 4.5vw, 3.75rem);
+      font-weight: 700;
+      color: #2563eb;
+      line-height: 1.1;
+      margin-bottom: 0.35rem;
+    }
+    .stat-label {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .stat-sub {
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+    .story-timeline-container {
+      max-width: 780px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+    }
+    .story-timeline {
+      position: relative;
+      padding-left: 2rem;
+      border-left: 2px solid #e2e8f0;
+    }
+    .timeline-entry {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -2.45rem;
+      top: 0.3rem;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #2563eb;
+      border: 3px solid #ffffff;
+      box-shadow: 0 0 0 2px #2563eb;
+    }
+    .timeline-date {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #2563eb;
+    }
+    .timeline-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .timeline-desc {
+      font-size: 1.05rem;
+      color: #475569;
+    }
+    .story-callout-container {
       max-width: 780px;
       margin: 2.5rem auto;
-      padding: 1rem 1.5rem;
+      padding: 0 1.5rem;
     }
+    .story-callout {
+      padding: 1.5rem 1.75rem;
+      border-radius: 8px;
+      border-left: 4px solid;
+    }
+    .callout-info { border-color: #3b82f6; background-color: #eff6ff; }
+    .callout-note { border-color: #8b5cf6; background-color: #f5f3ff; }
+    .callout-tip { border-color: #10b981; background-color: #ecfdf5; }
+    .callout-warning { border-color: #f59e0b; background-color: #fffbeb; }
+    .callout-header {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #0f172a;
+      margin-bottom: 0.5rem;
+    }
+    .story-audio-container {
+      max-width: 780px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+    }
+    .story-audio-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .audio-icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #2563eb;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .audio-info { flex-grow: 1; }
+    .audio-title { font-weight: 700; font-size: 1.05rem; color: #0f172a; }
+    .audio-artist { font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem; }
+    .story-audio-card audio { width: 100%; height: 36px; }
+    .story-author-container {
+      max-width: 780px;
+      margin: 3.5rem auto;
+      padding: 0 1.5rem;
+    }
+    .story-author-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.75rem;
+    }
+    .author-avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .author-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+    }
+    .author-role {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #2563eb;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .author-socials { display: flex; gap: 0.65rem; }
+    .author-social-link {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #334155;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+    .story-cta-container {
+      max-width: 860px;
+      margin: 3.5rem auto;
+      padding: 0 1.5rem;
+    }
+    .story-cta-box {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .cta-heading {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.75rem, 3vw, 2.35rem);
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+    .cta-subtext {
+      font-size: 1.1rem;
+      color: #94a3b8;
+      max-width: 580px;
+      margin: 0 auto 1.75rem;
+    }
+    .btn-cta {
+      display: inline-block;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.75rem 1.75rem;
+      border-radius: 8px;
+      background-color: #2563eb;
+      color: #ffffff;
+      text-decoration: none;
+    }
+    .story-skills-container {
+      max-width: 780px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+    }
+    .skills-heading {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #64748b;
+      text-align: center;
+      margin-bottom: 0.75rem;
+    }
+    .skills-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .skill-badge {
+      font-size: 0.88rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 9999px;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #e2e8f0;
+    }
+    .story-divider-container.spacing-sm { padding: 1.5rem 0; }
+    .story-divider-container.spacing-md { padding: 2.75rem 0; }
+    .story-divider-container.spacing-lg { padding: 4.5rem 0; }
+    .divider-line { border: 0; height: 1px; background: #e2e8f0; width: 60%; margin: 0 auto; }
+    .divider-asterisks { color: #94a3b8; font-size: 1.25rem; letter-spacing: 0.75rem; }
+    .divider-dots { color: #cbd5e1; font-size: 1.5rem; letter-spacing: 0.5rem; }
     .story-pull-quote {
       border-left: 4px solid #2563eb;
       padding: 0.75rem 0 0.75rem 1.5rem;
@@ -737,9 +1643,7 @@
       font-family: 'Playfair Display', Georgia, serif;
       font-size: 1.5rem;
       font-style: italic;
-      line-height: 1.5;
       color: #0f172a;
-      margin-bottom: 0.5rem;
     }
     .story-quote-cite {
       font-size: 0.9rem;
@@ -781,6 +1685,10 @@
       text-align: center;
       margin-top: 4rem;
     }
+    @media (max-width: 768px) {
+      .story-two-col-grid { grid-template-columns: 1fr; }
+      .story-split-row, .story-split-row.media-right { flex-direction: column; gap: 1.5rem; }
+    }
   </style>
 </head>
 <body>
@@ -789,7 +1697,7 @@ ${content}
 </html>`;
   }
 
-  // Copy to clipboard with legacy fallback
+  // Copy to clipboard with fallback
   function copyToClipboard(text, successMsg) {
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(text).then(() => {
@@ -816,7 +1724,6 @@ ${content}
     document.body.removeChild(ta);
   }
 
-  // Download helper
   function downloadFile(filename, content, mimeType = 'text/html') {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -919,7 +1826,7 @@ ${content}
 
     document.getElementById('btnCopySnippetHTML')?.addEventListener('click', () => {
       const snippet = getRenderedContentHTML();
-      copyToClipboard(snippet, 'Article content snippet copied!');
+      copyToClipboard(snippet, 'Article snippet copied!');
     });
 
     document.getElementById('btnExportJSON')?.addEventListener('click', () => {
@@ -966,7 +1873,6 @@ ${content}
 
     const hadSaved = loadState();
     if (!hadSaved || state.blocks.length === 0) {
-      // Default to the rich sample story so new visitors immediately see a working page
       state.blocks = JSON.parse(JSON.stringify(SAMPLE_STORY));
     }
 
@@ -974,7 +1880,6 @@ ${content}
     updateUndoRedoUI();
   }
 
-  // Run when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
