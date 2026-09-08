@@ -345,6 +345,9 @@
     const isDark = mode === 'dark';
 
     document.documentElement.setAttribute('data-theme-mode', mode);
+    document.documentElement.setAttribute('data-bs-theme', mode);
+    document.body.setAttribute('data-bs-theme', mode);
+    document.querySelectorAll('.modal').forEach(m => m.setAttribute('data-bs-theme', mode));
     const canvas = document.getElementById('storyCanvas');
     if (canvas) {
       canvas.setAttribute('data-theme-mode', mode);
@@ -473,11 +476,18 @@
     const { words, readTimeMinutes } = calculateStoryStats();
     const wordEl = document.getElementById('storyWordCount');
     const readEl = document.getElementById('storyReadTime');
+    const modalStatsEl = document.getElementById('modalStoryStats');
+    const wordsLabel = `${words.toLocaleString()} ${words === 1 ? 'word' : 'words'}`;
+    const timeLabel = `${readTimeMinutes} min read`;
+
     if (wordEl) {
-      wordEl.textContent = `${words.toLocaleString()} ${words === 1 ? 'word' : 'words'}`;
+      wordEl.textContent = wordsLabel;
     }
     if (readEl) {
-      readEl.textContent = `${readTimeMinutes} min read`;
+      readEl.textContent = timeLabel;
+    }
+    if (modalStatsEl) {
+      modalStatsEl.textContent = `${wordsLabel} · ${timeLabel}`;
     }
   }
 
@@ -767,17 +777,30 @@
 
       // 15. Callout / Aside Box
       case 'callout': {
-        const typeClass = ['info', 'note', 'tip', 'warning'].includes(d.type) ? `callout-${d.type}` : 'callout-info';
+        const type = d.type || 'note';
+        const typeClass = ['info', 'note', 'tip', 'warning', 'minimal', 'accent', 'custom'].includes(type) ? `callout-${type}` : 'callout-note';
         const icons = {
           info: 'info-circle',
           note: 'bookmark',
           tip: 'lightbulb',
-          warning: 'exclamation-triangle'
+          warning: 'triangle-exclamation',
+          minimal: 'quote-left',
+          accent: 'star',
+          custom: 'bookmark'
         };
-        const icon = icons[d.type] || 'info-circle';
+        const icon = icons[type] || 'bookmark';
+        let customStyle = '';
+        if (type === 'custom' && (d.borderColor || d.bgColor)) {
+          const s = [];
+          if (d.borderColor) s.push(`border-color: ${d.borderColor};`);
+          if (d.bgColor) s.push(`background-color: ${d.bgColor};`);
+          customStyle = ` style="${s.join(' ')}"`;
+        } else {
+          customStyle = getCustomStyleInline(d);
+        }
         return `
           <div class="story-callout-container">
-            <aside class="story-callout ${typeClass}${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            <aside class="story-callout ${typeClass}${getCustomStyleClasses(d)}"${customStyle}>
               ${d.title ? `<div class="callout-header"><i class="fas fa-${icon}"></i> ${escapeHTML(d.title)}</div>` : ''}
               <p class="callout-body">${renderInlineMarkdown(d.text || '')}</p>
             </aside>
@@ -1358,27 +1381,51 @@
             <div class="form-text">Separate the 3 parts with a vertical bar <code>|</code></div>
           </div>`;
 
-      case 'callout':
+      case 'callout': {
+        const isCustom = d.type === 'custom';
         return `
           <div class="row mb-3">
-            <div class="col-md-4">
-              <label class="form-label">Callout Type</label>
-              <select class="form-select" id="field_type">
-                <option value="info" ${d.type === 'info' ? 'selected' : ''}>Info (Blue)</option>
-                <option value="note" ${d.type === 'note' ? 'selected' : ''}>Note (Purple)</option>
-                <option value="tip" ${d.type === 'tip' ? 'selected' : ''}>Tip (Green)</option>
-                <option value="warning" ${d.type === 'warning' ? 'selected' : ''}>Warning (Amber)</option>
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Callout Color Theme</label>
+              <select class="form-select" id="field_type" onchange="const row = document.getElementById('calloutCustomColorRow'); if (row) row.classList.toggle('d-none', this.value !== 'custom');">
+                <option value="note" ${d.type === 'note' || !d.type ? 'selected' : ''}>Note (Editorial Purple)</option>
+                <option value="info" ${d.type === 'info' ? 'selected' : ''}>Info (Calm Blue)</option>
+                <option value="tip" ${d.type === 'tip' ? 'selected' : ''}>Tip / Success (Emerald Green)</option>
+                <option value="warning" ${d.type === 'warning' ? 'selected' : ''}>Warning / Notice (Amber)</option>
+                <option value="minimal" ${d.type === 'minimal' ? 'selected' : ''}>Minimal Slate (Neutral Gray)</option>
+                <option value="accent" ${d.type === 'accent' ? 'selected' : ''}>Story Theme Accent (Dynamic)</option>
+                <option value="custom" ${isCustom ? 'selected' : ''}>Custom Colors...</option>
               </select>
             </div>
-            <div class="col-md-8">
-              <label class="form-label">Box Title</label>
+            <div class="col-md-7">
+              <label class="form-label fw-semibold">Box Title</label>
               <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || '')}" placeholder="Behind the Scenes...">
+            </div>
+          </div>
+          <!-- Custom Color Controls for Callout -->
+          <div id="calloutCustomColorRow" class="${isCustom ? '' : 'd-none'} p-3 mb-3 bg-light rounded border">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold" for="field_calloutBorderColor">Border / Left Accent Color</label>
+                <div class="d-flex align-items-center gap-2">
+                  <input type="color" class="form-control form-control-color form-control-sm p-0 border-0" id="field_calloutBorderColor" value="${d.borderColor || '#3b82f6'}" style="width: 32px; height: 32px; cursor: pointer;" oninput="const h = document.getElementById('calloutBorderHex'); if(h) h.textContent = this.value">
+                  <span class="small font-monospace text-muted" id="calloutBorderHex">${d.borderColor || '#3b82f6'}</span>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold" for="field_calloutBgColor">Background Surface Tint</label>
+                <div class="d-flex align-items-center gap-2">
+                  <input type="color" class="form-control form-control-color form-control-sm p-0 border-0" id="field_calloutBgColor" value="${d.bgColor || '#eff6ff'}" style="width: 32px; height: 32px; cursor: pointer;" oninput="const h = document.getElementById('calloutBgHex'); if(h) h.textContent = this.value">
+                  <span class="small font-monospace text-muted" id="calloutBgHex">${d.bgColor || '#eff6ff'}</span>
+                </div>
+              </div>
             </div>
           </div>
           <div class="mb-3">
             ${generateTextFormatToolbar('field_text', 'Callout Content Text')}
             <textarea class="form-control" id="field_text" rows="4" placeholder="Highlighted note or methodology details...">${escapeHTML(d.text || '')}</textarea>
           </div>`;
+      }
 
       case 'audioPlayer':
         return `
@@ -1595,9 +1642,11 @@
         data.itemsText = getVal('field_itemsText');
         break;
       case 'callout':
-        data.type = getVal('field_type');
+        data.type = getVal('field_type') || 'note';
         data.title = getVal('field_title');
         data.text = getVal('field_text');
+        data.borderColor = getVal('field_calloutBorderColor');
+        data.bgColor = getVal('field_calloutBgColor');
         break;
       case 'audioPlayer':
         data.audioUrl = getVal('field_audioUrl');
@@ -2089,6 +2138,17 @@ ${blocksHtml}
     .callout-note { border-color: #8b5cf6; background-color: #f5f3ff; }
     .callout-tip { border-color: #10b981; background-color: #ecfdf5; }
     .callout-warning { border-color: #f59e0b; background-color: #fffbeb; }
+    .callout-minimal { border-color: #64748b; background-color: #f8fafc; }
+    .callout-accent { border-color: var(--primary-color); background-color: rgba(37, 99, 235, 0.06); }
+    [data-theme-mode="dark"] .story-callout { background-color: #111827; }
+    [data-theme-mode="dark"] .callout-info { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.12); }
+    [data-theme-mode="dark"] .callout-note { border-color: #a78bfa; background-color: rgba(139, 92, 246, 0.12); }
+    [data-theme-mode="dark"] .callout-tip { border-color: #10b981; background-color: rgba(16, 185, 129, 0.12); }
+    [data-theme-mode="dark"] .callout-warning { border-color: #f59e0b; background-color: rgba(245, 158, 11, 0.12); }
+    [data-theme-mode="dark"] .callout-minimal { border-color: #475569; background-color: #1e293b; }
+    [data-theme-mode="dark"] .callout-accent { border-color: var(--primary-color); background-color: rgba(37, 99, 235, 0.15); }
+    [data-theme-mode="dark"] .callout-header { color: var(--canvas-heading); }
+    [data-theme-mode="dark"] .callout-body { color: var(--canvas-text); }
     .callout-header {
       font-weight: 700;
       font-size: 1.1rem;
