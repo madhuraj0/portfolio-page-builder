@@ -1,0 +1,528 @@
+/* ==========================================================================
+   Portfolio & Story Page Builder Styles
+   ========================================================================== */
+
+:root {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --editor-bg: #f8fafc;
+  --toolbar-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --block-hover-border: #3b82f6;
+  --danger-color: #ef4444;
+  --success-color: #10b981;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text-main);
+  background-color: var(--editor-bg);
+  min-height: 100vh;
+}
+
+/* --------------------------------------------------------------------------
+   Editor Header & Navigation
+   -------------------------------------------------------------------------- */
+.editor-header {
+  position: sticky;
+  top: 0;
+  z-index: 1050;
+  background-color: var(--toolbar-bg);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 0.65rem 1.25rem;
+}
+
+.editor-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.brand-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0f172a;
+  margin: 0;
+}
+
+.brand-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   Add Block Palette
+   -------------------------------------------------------------------------- */
+.block-palette-bar {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 57px;
+  z-index: 1040;
+}
+
+.palette-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-right: 0.25rem;
+}
+
+.btn-palette {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  color: #334155;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.btn-palette:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   Main Workspace & Viewport
+   -------------------------------------------------------------------------- */
+.workspace-wrapper {
+  padding: 1.5rem 0 4rem;
+  display: flex;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+
+.story-canvas {
+  width: 100%;
+  max-width: 100%;
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  min-height: 80vh;
+  position: relative;
+  transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Responsive Viewport Preview Sizes */
+.viewport-desktop {
+  max-width: 100%;
+}
+
+.viewport-tablet {
+  max-width: 768px;
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.viewport-mobile {
+  max-width: 400px;
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Empty State Helper
+   -------------------------------------------------------------------------- */
+.empty-state {
+  text-align: center;
+  padding: 5rem 1.5rem;
+  color: var(--text-muted);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  max-width: 480px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   Story Block Styles (The Published Content Layout)
+   -------------------------------------------------------------------------- */
+.story-block {
+  position: relative;
+  transition: outline 0.15s ease;
+}
+
+body.mode-edit .story-block:hover {
+  outline: 2px dashed var(--block-hover-border);
+  outline-offset: -2px;
+}
+
+/* Block Toolbar (Controls) */
+.block-actions {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(4px);
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 50;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+body.mode-edit .story-block:hover > .block-actions,
+body.mode-edit .story-block.is-active > .block-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+body.mode-preview .block-actions,
+body.mode-preview .editor-header .edit-only,
+body.mode-preview .block-palette-bar {
+  display: none !important;
+}
+
+.btn-block-action {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.btn-block-action:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-block-action.btn-delete:hover {
+  background: var(--danger-color);
+}
+
+/* --------------------------------------------------------------------------
+   Block Elements Specific Typography & Presentation
+   -------------------------------------------------------------------------- */
+
+/* 1. Cover Block */
+.story-cover {
+  position: relative;
+  width: 100%;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.story-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: #ffffff;
+}
+
+.story-cover-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+  max-width: 900px;
+}
+
+.story-cover-tagline {
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  font-weight: 300;
+  line-height: 1.5;
+  max-width: 750px;
+  margin-bottom: 1.5rem;
+  opacity: 0.95;
+}
+
+.story-cover-meta {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 0.95rem;
+  opacity: 0.85;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.story-cover-byline {
+  font-style: italic;
+}
+
+/* 2. Section Heading Block */
+.story-heading-container {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 0.5rem;
+}
+
+.story-heading {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.85rem, 3.5vw, 2.75rem);
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.25;
+  margin: 0;
+}
+
+/* 3. Section Text Block */
+.story-text-container {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+}
+
+.story-text {
+  font-size: 1.18rem;
+  line-height: 1.85;
+  color: #334155;
+  margin: 0 0 1.25rem;
+  font-weight: 400;
+  white-space: pre-line;
+}
+
+/* 4. Wide Image Block */
+.story-wide-image {
+  max-width: 1040px;
+  margin: 2.5rem auto;
+  padding: 0 1rem;
+}
+
+.story-wide-image figure {
+  margin: 0;
+  text-align: center;
+}
+
+.story-wide-image img {
+  width: 100%;
+  max-height: 85vh;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.story-caption {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--text-muted);
+  margin-top: 0.75rem;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+/* 5. Bleeding Full-Bleed Image Block */
+.story-bleeding-image {
+  width: 100%;
+  margin: 3rem 0;
+}
+
+.story-bleeding-image img {
+  width: 100%;
+  max-height: 90vh;
+  object-fit: cover;
+  display: block;
+}
+
+/* 6. Pull Quote Block */
+.story-quote-container {
+  max-width: 780px;
+  margin: 2.5rem auto;
+  padding: 1rem 1.5rem;
+}
+
+.story-pull-quote {
+  border-left: 4px solid var(--primary-color);
+  padding: 0.75rem 0 0.75rem 1.5rem;
+  margin: 0;
+}
+
+.story-quote-text {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.5rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: #0f172a;
+  margin-bottom: 0.75rem;
+}
+
+.story-quote-cite {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 7. Web Embed Block (16:9 Responsive) */
+.story-embed-container {
+  max-width: 900px;
+  margin: 2.5rem auto;
+  padding: 0 1rem;
+}
+
+.responsive-embed-frame {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  height: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #000;
+}
+
+.responsive-embed-frame iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* 8. Standalone Caption Block */
+.story-standalone-caption {
+  max-width: 780px;
+  margin: 1.5rem auto;
+  padding: 0 1.5rem;
+}
+
+/* 9. Story Footer */
+.story-footer {
+  background-color: #0f172a;
+  color: #94a3b8;
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  margin-top: 4rem;
+}
+
+.story-footer p {
+  margin: 0;
+  font-size: 0.95rem;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   Modal & Form Polishing
+   -------------------------------------------------------------------------- */
+.modal-header {
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 1.25rem;
+}
+
+.modal-footer {
+  border-top: 1px solid var(--border-color);
+  padding: 0.75rem 1.25rem;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* --------------------------------------------------------------------------
+   Toast Notification
+   -------------------------------------------------------------------------- */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2000;
+}
+
+.app-toast {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 0.85rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  animation: toastFadeIn 0.2s ease;
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
