@@ -190,6 +190,11 @@
           <ul class="dropdown-menu dropdown-menu-end shadow-sm">
             <li><h6 class="dropdown-header">Export HTML</h6></li>
             <li>
+              <button class="dropdown-item" id="btnPreviewNewTab">
+                <i class="fas fa-arrow-up-right-from-square me-2 text-warning"></i> Open Live Preview in New Tab
+              </button>
+            </li>
+            <li>
               <button class="dropdown-item" id="btnCopyFullHTML">
                 <i class="fas fa-copy me-2 text-primary"></i> Copy Full Page HTML
               </button>
@@ -465,7 +470,12 @@
 
               <div class="mb-3">
                 <label class="form-label fw-semibold" for="settingStoryImage">Social Share Image URL (OG Image)</label>
-                <input type="url" class="form-control" id="settingStoryImage" placeholder="https://images.unsplash.com/photo-...">
+                <div class="input-group">
+                  <input type="url" class="form-control" id="settingStoryImage" placeholder="https://images.unsplash.com/photo-...">
+                  <button class="btn btn-outline-secondary btn-open-image-picker" type="button" data-target="settingStoryImage" title="Browse curated photos or upload local file">
+                    <i class="fas fa-images me-1 text-primary"></i> Choose...
+                  </button>
+                </div>
                 <div class="form-text">Preview banner image shown when shared on Twitter, LinkedIn, Slack, etc.</div>
               </div>
             </div>
@@ -508,6 +518,79 @@
           <button type="button" class="btn btn-primary" id="btnSaveStorySettings">
             <i class="fas fa-check me-1"></i> Save Story Settings
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Image Asset Picker (Unsplash & Local Upload) -->
+  <div class="modal fade" id="imageAssetPickerModal" tabindex="-1" aria-labelledby="imageAssetPickerTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="imageAssetPickerTitle"><i class="fas fa-images me-2 text-primary"></i> Choose or Upload Photo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <ul class="nav nav-tabs px-3 pt-2 bg-light border-bottom" id="imagePickerTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tabUnsplash-tab" data-bs-toggle="tab" data-bs-target="#tabUnsplash" type="button" role="tab">
+                <i class="fas fa-camera me-1"></i> Curated Photos
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tabUpload-tab" data-bs-toggle="tab" data-bs-target="#tabUpload" type="button" role="tab">
+                <i class="fas fa-cloud-arrow-up me-1"></i> Upload Local Photo
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content p-3" id="imagePickerTabContent">
+            <!-- Tab 1: Unsplash & Curated Photos -->
+            <div class="tab-pane fade show active" id="tabUnsplash" role="tabpanel">
+              <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+                <div class="btn-group btn-group-sm flex-wrap" id="imageCategoryPills">
+                  <button type="button" class="btn btn-outline-secondary active" data-category="editorial">Editorial</button>
+                  <button type="button" class="btn btn-outline-secondary" data-category="architecture">Architecture</button>
+                  <button type="button" class="btn btn-outline-secondary" data-category="nature">Nature</button>
+                  <button type="button" class="btn btn-outline-secondary" data-category="portrait">Portraits</button>
+                  <button type="button" class="btn btn-outline-secondary" data-category="technology">Technology</button>
+                  <button type="button" class="btn btn-outline-secondary" data-category="minimal">Minimal</button>
+                </div>
+              </div>
+              <div class="input-group input-group-sm mb-3">
+                <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+                <input type="text" class="form-control" id="inputImageSearch" placeholder="Search curated library or topics (e.g. mountains, studio, minimal)...">
+                <button class="btn btn-primary" type="button" id="btnSearchPhotos">Search</button>
+              </div>
+              <div class="image-picker-grid" id="imagePickerGrid">
+                <!-- Dynamically populated photo thumbnails -->
+              </div>
+            </div>
+
+            <!-- Tab 2: Upload Local File -->
+            <div class="tab-pane fade" id="tabUpload" role="tabpanel">
+              <div class="image-dropzone p-4 text-center border border-2 border-dashed rounded bg-light" id="imageDropzone" style="cursor: pointer;">
+                <input type="file" id="localImageFileInput" accept="image/jpeg,image/png,image/webp,image/svg+xml" class="d-none">
+                <i class="fas fa-cloud-arrow-up display-5 text-primary mb-2"></i>
+                <h6 class="mb-1">Drop your image here, or <span class="text-primary text-decoration-underline">browse files</span></h6>
+                <p class="text-muted small mb-0">Supports JPG, PNG, WebP, SVG. Stored locally and in exported HTML.</p>
+              </div>
+              <div id="imageUploadStatus" class="mt-3 d-none">
+                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded border">
+                  <img id="uploadPreviewImg" src="" alt="Preview" style="width: 80px; height: 60px; object-fit: cover; border-radius: 4px;">
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold small" id="uploadFileName">image.jpg</div>
+                    <div class="text-muted small" id="uploadFileSize">Ready to use</div>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-primary" id="btnApplyUpload">Use This Photo</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
