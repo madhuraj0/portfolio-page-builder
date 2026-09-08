@@ -21,13 +21,37 @@
   function sanitizeURL(url) {
     if (!url) return '';
     const trimmed = String(url).trim();
-    if (/^(https?:\/\/|\/|\.\/|mailto:|data:image\/)/i.test(trimmed)) {
+    if (/^(https?:\/\/|\/|\.\/|mailto:|tel:|data:image\/)/i.test(trimmed)) {
       return trimmed;
     }
-    if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(trimmed)) {
+    if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\/.*)?$/i.test(trimmed)) {
       return 'https://' + trimmed;
     }
-    return escapeHTML(trimmed);
+    return '#';
+  }
+
+  // Safe Inline Markdown Parser: links [text](url), **bold**, *italic*, and `code`
+  function renderInlineMarkdown(str) {
+    if (!str) return '';
+    let escaped = escapeHTML(str);
+
+    // Markdown links [text](url)
+    escaped = escaped.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (match, linkText, url) => {
+      const rawUrl = url.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#039;/g, "'");
+      const safeUrl = sanitizeURL(rawUrl);
+      return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="story-link">${linkText}</a>`;
+    });
+
+    // Inline code `code`
+    escaped = escaped.replace(/`([^`]+)`/g, '<code class="story-inline-code">$1</code>');
+
+    // Bold **text** or __text__
+    escaped = escaped.replace(/(\*\*|__)(.*?)\1/g, '<strong>$2</strong>');
+
+    // Italic *text* or _text_
+    escaped = escaped.replace(/(\*|_)(.*?)\1/g, '<em>$2</em>');
+
+    return escaped;
   }
 
   // --- Curated Typography Themes ---
@@ -90,7 +114,7 @@
       id: 'blk_3',
       type: 'text',
       data: {
-        text: 'Every journey begins with an unspoken promise. Before dawn broke across the fjord, the water was as smooth as dark obsidian, reflecting jagged snowcapped ridges in absolute symmetry.\n\nTraveling light with mechanical cameras, audio recorders, and warm tea, we ventured into regions rarely touched by seasonal roads.'
+        text: 'Every journey begins with an unspoken promise. Before dawn broke across the fjord, the water was as smooth as dark obsidian, reflecting **jagged snowcapped ridges** in absolute symmetry.\n\nTraveling light with mechanical cameras, audio recorders, and warm tea, we ventured into regions rarely touched by seasonal roads. Explore our [expedition dispatch](https://github.com/madhuraj0/portfolio-page-builder) and field logs below.'
       }
     },
     {
@@ -225,7 +249,7 @@
 
   const undoStack = [];
   const redoStack = [];
-  const STORAGE_KEY = 'portfolio_builder_draft_v3';
+  const STORAGE_KEY = 'portfolio_builder_draft_v4';
 
   function getFontUrlForPair(heading, body) {
     const cleanH = encodeURIComponent(heading).replace(/%20/g, '+');
@@ -401,7 +425,7 @@
           <div class="story-cover" style="background-image: url('${bgImg}');">
             <div class="story-cover-overlay${getCustomStyleClasses(d)}" style="background-color: rgba(0, 0, 0, ${opacity});">
               <h1 class="story-cover-title">${escapeHTML(d.title || 'Your Title Here')}</h1>
-              ${d.tagline ? `<p class="story-cover-tagline">${escapeHTML(d.tagline)}</p>` : ''}
+              ${d.tagline ? `<p class="story-cover-tagline">${renderInlineMarkdown(d.tagline)}</p>` : ''}
               <div class="story-cover-meta">
                 ${d.byline ? `<span class="story-cover-byline">${escapeHTML(d.byline)}</span>` : ''}
                 ${d.dateline ? `<span class="story-cover-dateline">${escapeHTML(d.dateline)}</span>` : ''}
@@ -415,7 +439,7 @@
         const tag = ['h1', 'h2', 'h3'].includes(d.level) ? d.level : 'h1';
         return `
           <div class="story-heading-container">
-            <${tag} class="story-heading${getCustomStyleClasses(d)}">${escapeHTML(d.text || 'Section Heading')}</${tag}>
+            <${tag} class="story-heading${getCustomStyleClasses(d)}">${renderInlineMarkdown(d.text || 'Section Heading')}</${tag}>
           </div>`;
       }
 
@@ -423,7 +447,7 @@
       case 'text': {
         return `
           <div class="story-text-container">
-            <p class="story-text${getCustomStyleClasses(d)}">${escapeHTML(d.text || '')}</p>
+            <p class="story-text${getCustomStyleClasses(d)}">${renderInlineMarkdown(d.text || '')}</p>
           </div>`;
       }
 
@@ -434,7 +458,7 @@
           <div class="story-wide-image">
             <figure>
               <img src="${imgUrl}" alt="${escapeHTML(d.altText || d.caption || 'Photo')}" loading="lazy" class="img-fluid" />
-              ${d.caption ? `<figcaption class="story-caption">${escapeHTML(d.caption)}</figcaption>` : ''}
+              ${d.caption ? `<figcaption class="story-caption">${renderInlineMarkdown(d.caption)}</figcaption>` : ''}
             </figure>
           </div>`;
       }
@@ -445,7 +469,7 @@
         return `
           <div class="story-bleeding-image">
             <img src="${imgUrl}" alt="${escapeHTML(d.altText || d.caption || 'Full Bleed Photo')}" loading="lazy" />
-            ${d.caption ? `<div class="story-caption">${escapeHTML(d.caption)}</div>` : ''}
+            ${d.caption ? `<div class="story-caption">${renderInlineMarkdown(d.caption)}</div>` : ''}
           </div>`;
       }
 
@@ -454,7 +478,7 @@
         return `
           <div class="story-quote-container">
             <blockquote class="story-pull-quote${getCustomStyleClasses(d)}">
-              <p class="story-quote-text">“${escapeHTML(d.quote || '')}”</p>
+              <p class="story-quote-text">“${renderInlineMarkdown(d.quote || '')}”</p>
               ${d.author ? `<cite class="story-quote-cite">— ${escapeHTML(d.author)}</cite>` : ''}
             </blockquote>
           </div>`;
@@ -468,7 +492,7 @@
             <div class="responsive-embed-frame">
               <iframe src="${embedUrl}" title="Embedded Media" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
-            ${d.caption ? `<div class="story-caption">${escapeHTML(d.caption)}</div>` : ''}
+            ${d.caption ? `<div class="story-caption">${renderInlineMarkdown(d.caption)}</div>` : ''}
           </div>`;
       }
 
@@ -476,7 +500,7 @@
       case 'caption': {
         return `
           <div class="story-standalone-caption">
-            <p class="story-caption${getCustomStyleClasses(d)}"><em>${escapeHTML(d.text || '')}</em></p>
+            <p class="story-caption${getCustomStyleClasses(d)}"><em>${renderInlineMarkdown(d.text || '')}</em></p>
           </div>`;
       }
 
@@ -484,7 +508,7 @@
       case 'footer': {
         return `
           <footer class="story-footer${getCustomStyleClasses(d)}">
-            <p>${escapeHTML(d.text || '')}</p>
+            <p>${renderInlineMarkdown(d.text || '')}</p>
           </footer>`;
       }
 
@@ -546,7 +570,7 @@
               </div>
               <div class="split-content${getCustomStyleClasses(d)}">
                 <h3>${escapeHTML(d.title || '')}</h3>
-                <p>${escapeHTML(d.text || '')}</p>
+                <p>${renderInlineMarkdown(d.text || '')}</p>
               </div>
             </div>
           </div>`;
@@ -589,7 +613,7 @@
               <div class="timeline-dot"></div>
               ${date ? `<div class="timeline-date">${escapeHTML(date)}</div>` : ''}
               ${title ? `<div class="timeline-title">${escapeHTML(title)}</div>` : ''}
-              ${desc ? `<p class="timeline-desc">${escapeHTML(desc)}</p>` : ''}
+              ${desc ? `<p class="timeline-desc">${renderInlineMarkdown(desc)}</p>` : ''}
             </div>`;
         }).join('');
 
@@ -615,7 +639,7 @@
           <div class="story-callout-container">
             <aside class="story-callout ${typeClass}${getCustomStyleClasses(d)}">
               ${d.title ? `<div class="callout-header"><i class="fas fa-${icon}"></i> ${escapeHTML(d.title)}</div>` : ''}
-              <p class="callout-body">${escapeHTML(d.text || '')}</p>
+              <p class="callout-body">${renderInlineMarkdown(d.text || '')}</p>
             </aside>
           </div>`;
       }
@@ -638,7 +662,7 @@
                 </audio>
               </div>
             </div>
-            ${d.caption ? `<div class="story-caption">${escapeHTML(d.caption)}</div>` : ''}
+            ${d.caption ? `<div class="story-caption">${renderInlineMarkdown(d.caption)}</div>` : ''}
           </div>`;
       }
 
@@ -652,7 +676,7 @@
               <div class="author-info">
                 <h4 class="author-name">${escapeHTML(d.name || 'Author Name')}</h4>
                 ${d.role ? `<div class="author-role">${escapeHTML(d.role)}</div>` : ''}
-                ${d.bio ? `<p class="author-bio">${escapeHTML(d.bio)}</p>` : ''}
+                ${d.bio ? `<p class="author-bio">${renderInlineMarkdown(d.bio)}</p>` : ''}
                 <div class="author-socials">
                   ${d.websiteUrl ? `<a href="${sanitizeURL(d.websiteUrl)}" target="_blank" rel="noopener" class="author-social-link" title="Website"><i class="fas fa-globe"></i></a>` : ''}
                   ${d.githubUrl ? `<a href="${sanitizeURL(d.githubUrl)}" target="_blank" rel="noopener" class="author-social-link" title="GitHub"><i class="fab fa-github"></i></a>` : ''}
@@ -671,7 +695,7 @@
           <div class="story-cta-container">
             <div class="story-cta-box${getCustomStyleClasses(d)}">
               <h3 class="cta-heading">${escapeHTML(d.heading || 'Take the Next Step')}</h3>
-              ${d.subtext ? `<p class="cta-subtext">${escapeHTML(d.subtext)}</p>` : ''}
+              ${d.subtext ? `<p class="cta-subtext">${renderInlineMarkdown(d.subtext)}</p>` : ''}
               <a href="${btnUrl}" target="_blank" rel="noopener" class="btn-cta">
                 ${escapeHTML(d.buttonText || 'Learn More')} <i class="fas fa-arrow-right ms-1"></i>
               </a>
@@ -868,6 +892,42 @@
     modalTitle.textContent = (isNew ? 'Add ' : 'Edit ') + formatTypeName(block.type);
     modalBody.innerHTML = generateFormFields(block);
 
+    // Wire Markdown & Hyperlink Formatting Toolbar Buttons
+    modalBody.querySelectorAll('.btn-format').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const toolbar = btn.closest('.text-format-toolbar');
+        if (!toolbar) return;
+        const targetId = toolbar.dataset.target;
+        const textarea = document.getElementById(targetId);
+        if (!textarea) return;
+
+        const action = btn.dataset.action;
+        const start = textarea.selectionStart != null ? textarea.selectionStart : textarea.value.length;
+        const end = textarea.selectionEnd != null ? textarea.selectionEnd : textarea.value.length;
+        const selectedText = textarea.value.substring(start, end);
+        let replacement = '';
+
+        if (action === 'bold') {
+          replacement = `**${selectedText || 'bold text'}**`;
+        } else if (action === 'italic') {
+          replacement = `*${selectedText || 'italic text'}*`;
+        } else if (action === 'code') {
+          replacement = `\`${selectedText || 'code'}\``;
+        } else if (action === 'link') {
+          const initialText = selectedText || 'link text';
+          const enteredUrl = prompt('Enter destination URL (e.g. https://example.com):', 'https://');
+          if (enteredUrl === null) return;
+          const cleanUrl = enteredUrl.trim() || 'https://';
+          replacement = `[${initialText}](${cleanUrl})`;
+        }
+
+        textarea.setRangeText(replacement, start, end, 'end');
+        textarea.focus();
+        textarea.dispatchEvent(new Event('input'));
+      });
+    });
+
     saveBtn.onclick = () => {
       const updatedData = extractFormData(block.type);
       saveState();
@@ -881,6 +941,19 @@
     };
 
     blockModalInstance.show();
+  }
+
+  function generateTextFormatToolbar(targetFieldId, labelText = 'Content Text') {
+    return `
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <label class="form-label mb-0" for="${targetFieldId}">${escapeHTML(labelText)}</label>
+        <div class="btn-group btn-group-sm text-format-toolbar" data-target="${targetFieldId}">
+          <button type="button" class="btn btn-outline-secondary py-0 px-2 btn-format" data-action="bold" title="Bold (**text**)"><i class="fas fa-bold fa-xs"></i></button>
+          <button type="button" class="btn btn-outline-secondary py-0 px-2 btn-format" data-action="italic" title="Italic (*text*)"><i class="fas fa-italic fa-xs"></i></button>
+          <button type="button" class="btn btn-outline-secondary py-0 px-2 btn-format" data-action="link" title="Hyperlink [text](url)"><i class="fas fa-link fa-xs"></i> Link</button>
+          <button type="button" class="btn btn-outline-secondary py-0 px-2 btn-format" data-action="code" title="Code (\`text\`)"><i class="fas fa-code fa-xs"></i></button>
+        </div>
+      </div>`;
   }
 
   function formatTypeName(type) {
@@ -1003,7 +1076,7 @@
       case 'text':
         return `
           <div class="mb-3">
-            <label class="form-label">Story Text (Supports multiple paragraphs)</label>
+            ${generateTextFormatToolbar('field_text', 'Story Text (Multiple paragraphs & markdown supported)')}
             <textarea class="form-control" id="field_text" rows="8" placeholder="Type or paste your narrative here...">${escapeHTML(d.text || '')}</textarea>
           </div>`;
 
@@ -1085,7 +1158,7 @@
             <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || '')}" placeholder="Title of this feature">
           </div>
           <div class="mb-3">
-            <label class="form-label">Narrative Text</label>
+            ${generateTextFormatToolbar('field_text', 'Narrative Text')}
             <textarea class="form-control" id="field_text" rows="5" placeholder="Narrative text describing the image...">${escapeHTML(d.text || '')}</textarea>
           </div>`;
 
@@ -1133,7 +1206,7 @@
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Content Text</label>
+            ${generateTextFormatToolbar('field_text', 'Callout Content Text')}
             <textarea class="form-control" id="field_text" rows="4" placeholder="Highlighted note or methodology details...">${escapeHTML(d.text || '')}</textarea>
           </div>`;
 
@@ -1175,7 +1248,7 @@
             <input type="url" class="form-control" id="field_avatarUrl" value="${escapeHTML(d.avatarUrl || '')}" placeholder="https://...">
           </div>
           <div class="mb-3">
-            <label class="form-label">Biography</label>
+            ${generateTextFormatToolbar('field_bio', 'Biography / Background')}
             <textarea class="form-control" id="field_bio" rows="3" placeholder="Brief author or creator summary...">${escapeHTML(d.bio || '')}</textarea>
           </div>
           <div class="row">
@@ -1192,7 +1265,7 @@
             <input type="text" class="form-control" id="field_heading" value="${escapeHTML(d.heading || '')}" placeholder="Ready to collaborate?" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Descriptive Subtext</label>
+            ${generateTextFormatToolbar('field_subtext', 'Descriptive Subtext')}
             <textarea class="form-control" id="field_subtext" rows="2" placeholder="Available for assignments, exhibitions, and commissions.">${escapeHTML(d.subtext || '')}</textarea>
           </div>
           <div class="row">
@@ -1242,7 +1315,7 @@
       case 'quote':
         return `
           <div class="mb-3">
-            <label class="form-label">Quote</label>
+            ${generateTextFormatToolbar('field_quote', 'Quote Content')}
             <textarea class="form-control" id="field_quote" rows="3" placeholder="Memorable quote...">${escapeHTML(d.quote || '')}</textarea>
           </div>
           <div class="mb-3">
@@ -1265,14 +1338,14 @@
       case 'caption':
         return `
           <div class="mb-3">
-            <label class="form-label">Caption Text</label>
-            <input type="text" class="form-control" id="field_text" value="${escapeHTML(d.text || '')}" placeholder="Standalone note or italic caption">
+            ${generateTextFormatToolbar('field_text', 'Caption Text')}
+            <textarea class="form-control" id="field_text" rows="3" placeholder="Standalone note or italic caption">${escapeHTML(d.text || '')}</textarea>
           </div>`;
 
       case 'footer':
         return `
           <div class="mb-3">
-            <label class="form-label">Footer Content</label>
+            ${generateTextFormatToolbar('field_text', 'Footer Content')}
             <textarea class="form-control" id="field_text" rows="3" placeholder="Copyright or closing statement...">${escapeHTML(d.text || '')}</textarea>
           </div>`;
 
@@ -1427,7 +1500,10 @@
   .story-snippet .font-role-mono { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace !important; }
   .story-snippet .align-left { text-align: left !important; }
   .story-snippet .align-center { text-align: center !important; }
-  .story-snippet .align-right { text-align: right !important; }`;
+  .story-snippet .align-right { text-align: right !important; }
+  .story-snippet .story-link { color: #2563eb; text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
+  .story-snippet .story-link:hover { color: #1d4ed8; text-decoration: underline; }
+  .story-snippet .story-inline-code { background-color: #f1f5f9; color: #0f172a; padding: 0.15rem 0.38rem; border-radius: 4px; font-size: 0.88em; font-family: monospace; }`;
 
     if (withSelfContainedFonts) {
       return `<style>
@@ -1502,6 +1578,9 @@ ${blocksHtml}
     .align-left { text-align: left !important; }
     .align-center { text-align: center !important; }
     .align-right { text-align: right !important; }
+    .story-link { color: #2563eb; text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
+    .story-link:hover { color: #1d4ed8; text-decoration: underline; }
+    .story-inline-code { background-color: #f1f5f9; color: #0f172a; padding: 0.15rem 0.38rem; border-radius: 4px; font-size: 0.88em; font-family: monospace; }
     .story-cover {
       position: relative;
       width: 100%;
