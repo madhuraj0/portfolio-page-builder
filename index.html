@@ -25,18 +25,18 @@
   <!-- Top Application Navigation -->
   <header class="editor-header">
     <div class="editor-nav">
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center gap-2 gap-sm-3">
         <h1 class="brand-title">
           <i class="fas fa-feather-pointed text-primary"></i>
           <span>StoryBuilder</span>
         </h1>
-        <span class="brand-badge">Portfolio</span>
+        <span class="brand-badge d-none d-sm-inline">Portfolio</span>
 
-        <!-- Reading Time & Word Count Badge (Always visible) -->
-        <div class="reading-indicator d-flex align-items-center gap-2" id="readingIndicatorBadge" title="Estimated Reading Time & Word Count">
-          <i class="fas fa-book-open text-primary"></i>
-          <span id="storyWordCount">0 words</span>
-          <span class="text-muted">&middot;</span>
+        <!-- Reading Time & Word Count Badge (Responsive: compact on mobile, full on desktop) -->
+        <div class="reading-indicator d-flex align-items-center gap-1 gap-sm-2" id="readingIndicatorBadge" title="Estimated Reading Time & Word Count">
+          <i class="fas fa-book-open text-primary fa-xs"></i>
+          <span id="storyWordCount" class="d-none d-md-inline">0 words</span>
+          <span class="text-muted reading-dot d-none d-md-inline">&middot;</span>
           <span id="storyReadTime">0 min read</span>
         </div>
       </div>
