@@ -453,7 +453,8 @@
           lowerKey.includes('position') ||
           lowerKey.includes('align') ||
           lowerKey.includes('level') ||
-          lowerKey.includes('size')
+          lowerKey.includes('size') ||
+          lowerKey.includes('html')
         ) {
           return;
         }
@@ -945,6 +946,91 @@
           </div>`;
       }
 
+      // 22. Interactive Map Embed
+      case 'mapEmbed': {
+        const height = parseInt(d.height, 10) || 420;
+        const widthMode = ['standard', 'wide', 'bleed'].includes(d.widthMode) ? d.widthMode : 'standard';
+        let mapUrl = '';
+        if (d.provider === 'custom' && d.customUrl) {
+          mapUrl = sanitizeURL(d.customUrl);
+        } else {
+          const loc = encodeURIComponent(d.location || 'Paris, France');
+          const zoom = Math.min(Math.max(parseInt(d.zoom, 10) || 13, 1), 20);
+          mapUrl = `https://maps.google.com/maps?q=${loc}&t=&z=${zoom}&ie=UTF8&iwloc=&output=embed`;
+        }
+
+        const widthClass = widthMode === 'bleed' ? 'story-map-bleed' : (widthMode === 'wide' ? 'story-map-wide' : 'story-map-standard');
+
+        return `
+          <div class="story-map-container ${widthClass}${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            <div class="story-map-frame-wrapper" style="height: ${height}px;">
+              <iframe
+                src="${mapUrl}"
+                class="story-map-iframe"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                title="Interactive Map - ${escapeHTML(d.location || 'Location')}"
+                allowfullscreen>
+              </iframe>
+            </div>
+            ${d.caption ? `
+              <div class="story-caption text-center mt-2">
+                <i class="fas fa-location-dot me-1 text-danger opacity-75"></i>${renderInlineMarkdown(d.caption)}
+              </div>` : ''}
+          </div>`;
+      }
+
+      // 23. Custom Widget / Code Embed
+      case 'customWidget': {
+        const cardStyle = ['none', 'card', 'terminal'].includes(d.cardStyle) ? d.cardStyle : 'card';
+        const maxWidth = ['compact', 'standard', 'wide', 'bleed'].includes(d.maxWidth) ? d.maxWidth : 'standard';
+        const widthClass = maxWidth === 'bleed' ? 'widget-width-bleed' : (maxWidth === 'wide' ? 'widget-width-wide' : (maxWidth === 'compact' ? 'widget-width-compact' : 'widget-width-standard'));
+        const content = d.htmlContent || '<div class="p-4 text-center text-muted fst-italic"><i class="fas fa-code me-2"></i>Empty Custom Widget</div>';
+
+        let innerWidget = '';
+        if (cardStyle === 'terminal') {
+          innerWidget = `
+            <div class="widget-terminal-window">
+              <div class="widget-terminal-header">
+                <div class="terminal-dots">
+                  <span class="dot dot-red"></span>
+                  <span class="dot dot-yellow"></span>
+                  <span class="dot dot-green"></span>
+                </div>
+                <div class="terminal-title">${escapeHTML(d.title || 'custom_widget.html')}</div>
+              </div>
+              <div class="widget-terminal-body">
+                ${content}
+              </div>
+            </div>`;
+        } else if (cardStyle === 'card') {
+          innerWidget = `
+            <div class="widget-card">
+              ${d.title ? `
+                <div class="widget-card-header">
+                  <span class="widget-card-title"><i class="fas fa-cube me-2 text-primary"></i>${escapeHTML(d.title)}</span>
+                </div>` : ''}
+              <div class="widget-card-body">
+                ${content}
+              </div>
+            </div>`;
+        } else {
+          innerWidget = `
+            <div class="widget-raw-container">
+              ${content}
+            </div>`;
+        }
+
+        return `
+          <div class="story-widget-container ${widthClass}${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            ${innerWidget}
+            ${d.caption ? `
+              <div class="story-caption text-center mt-2">
+                ${renderInlineMarkdown(d.caption)}
+              </div>` : ''}
+          </div>`;
+      }
+
       default:
         return `<div class="p-3 text-muted">Unknown block type</div>`;
     }
@@ -1107,6 +1193,24 @@
           sticky: true,
           style: 'glass'
         };
+      } else if (defaultType === 'mapEmbed') {
+        block.data = {
+          location: 'Kyoto, Japan',
+          provider: 'google',
+          zoom: 13,
+          customUrl: '',
+          height: 420,
+          widthMode: 'standard',
+          caption: 'Field expedition coordinates — Kyoto, Japan'
+        };
+      } else if (defaultType === 'customWidget') {
+        block.data = {
+          title: 'Interactive Prototype',
+          htmlContent: '<div style="padding: 2.25rem 1.5rem; text-align: center; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; border-radius: 12px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);">\n  <h4 style="margin: 0 0 0.5rem 0; font-weight: 700; font-size: 1.35rem;">Live Interactive Widget</h4>\n  <p style="margin: 0; opacity: 0.9; font-size: 0.95rem;">Paste custom HTML, SVG graphics, Spotify/CodePen embeds, or widgets here.</p>\n</div>',
+          cardStyle: 'card',
+          maxWidth: 'standard',
+          caption: 'Custom embedded interactive component'
+        };
       }
     } else {
       block = state.blocks.find(b => b.id === blockId);
@@ -1211,7 +1315,9 @@
       divider: 'Section Divider & Spacer',
       caption: 'Standalone Caption',
       footer: 'Story Footer',
-      navbar: 'Story Topbar / Navigation Header'
+      navbar: 'Story Topbar / Navigation Header',
+      mapEmbed: 'Interactive Map Embed',
+      customWidget: 'Custom Widget / Code Embed'
     };
     return names[type] || 'Story Block';
   }
@@ -1699,6 +1805,99 @@
             </div>
           </div>`;
 
+      case 'mapEmbed':
+        return `
+          <div class="row g-3 mb-3">
+            <div class="col-md-7">
+              <label class="form-label fw-semibold">Location / Address</label>
+              <input type="text" class="form-control" id="field_location" value="${escapeHTML(d.location || '')}" placeholder="e.g. Kyoto, Japan or Times Square, New York">
+              <div class="form-text">Enter any city, landmark, or street address.</div>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Map Source</label>
+              <select class="form-select" id="field_provider" onchange="const c = document.getElementById('mapCustomUrlRow'); if (c) c.classList.toggle('d-none', this.value !== 'custom');">
+                <option value="google" ${d.provider === 'google' || !d.provider ? 'selected' : ''}>Google Maps (Worldwide)</option>
+                <option value="custom" ${d.provider === 'custom' ? 'selected' : ''}>Custom Embed URL (iframe)</option>
+              </select>
+            </div>
+          </div>
+          <div id="mapCustomUrlRow" class="${d.provider === 'custom' ? '' : 'd-none'} mb-3 p-3 bg-light rounded border">
+            <label class="form-label fw-semibold">Custom Map Embed URL</label>
+            <input type="url" class="form-control" id="field_customUrl" value="${escapeHTML(d.customUrl || '')}" placeholder="https://www.openstreetmap.org/export/embed.html?...">
+            <div class="form-text">Paste the direct embed/src URL from OpenStreetMap, Mapbox, or Google Maps iframe.</div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Zoom Level</label>
+              <select class="form-select" id="field_zoom">
+                <option value="16" ${d.zoom === 16 || d.zoom === '16' ? 'selected' : ''}>Street / Neighborhood (16x)</option>
+                <option value="13" ${d.zoom === 13 || d.zoom === '13' || !d.zoom ? 'selected' : ''}>City / Urban Area (13x)</option>
+                <option value="10" ${d.zoom === 10 || d.zoom === '10' ? 'selected' : ''}>Regional (10x)</option>
+                <option value="6" ${d.zoom === 6 || d.zoom === '6' ? 'selected' : ''}>Country / Continent (6x)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Frame Height</label>
+              <select class="form-select" id="field_height">
+                <option value="320" ${d.height === 320 || d.height === '320' ? 'selected' : ''}>Compact (320px)</option>
+                <option value="420" ${d.height === 420 || d.height === '420' || !d.height ? 'selected' : ''}>Standard (420px)</option>
+                <option value="540" ${d.height === 540 || d.height === '540' ? 'selected' : ''}>Tall / Immersive (540px)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Container Width</label>
+              <select class="form-select" id="field_widthMode">
+                <option value="standard" ${d.widthMode === 'standard' || !d.widthMode ? 'selected' : ''}>Standard (780px)</option>
+                <option value="wide" ${d.widthMode === 'wide' ? 'selected' : ''}>Wide Editorial (1040px)</option>
+                <option value="bleed" ${d.widthMode === 'bleed' ? 'selected' : ''}>Full Bleed (100% Edge-to-Edge)</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Map Caption / Notes</label>
+            <input type="text" class="form-control" id="field_caption" value="${escapeHTML(d.caption || '')}" placeholder="Optional field notes or coordinates...">
+          </div>`;
+
+      case 'customWidget':
+        return `
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Widget Title / Header (Optional)</label>
+              <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || '')}" placeholder="e.g. Spotify Player, CodePen Demo, Interactive Chart">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Card Wrapper</label>
+              <select class="form-select" id="field_cardStyle">
+                <option value="card" ${d.cardStyle === 'card' || !d.cardStyle ? 'selected' : ''}>Framed Card</option>
+                <option value="terminal" ${d.cardStyle === 'terminal' ? 'selected' : ''}>Terminal Window</option>
+                <option value="none" ${d.cardStyle === 'none' ? 'selected' : ''}>Raw (No Frame)</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Max Width</label>
+              <select class="form-select" id="field_maxWidth">
+                <option value="compact" ${d.maxWidth === 'compact' ? 'selected' : ''}>Compact (680px)</option>
+                <option value="standard" ${d.maxWidth === 'standard' || !d.maxWidth ? 'selected' : ''}>Standard (780px)</option>
+                <option value="wide" ${d.maxWidth === 'wide' ? 'selected' : ''}>Wide (1040px)</option>
+                <option value="bleed" ${d.maxWidth === 'bleed' ? 'selected' : ''}>Full Bleed (100%)</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold d-flex justify-content-between">
+              <span>HTML / SVG / Embed Code</span>
+              <span class="badge bg-light text-secondary border font-monospace">Raw HTML / iframe / SVG</span>
+            </label>
+            <textarea class="form-control font-monospace" id="field_htmlContent" rows="7" placeholder="&lt;iframe src=&quot;...&quot; ...&gt;&lt;/iframe&gt; or &lt;div&gt;...&lt;/div&gt;" style="font-size: 0.85rem; tab-size: 2;">${escapeHTML(d.htmlContent || '')}</textarea>
+            <div class="form-text">
+              <i class="fas fa-info-circle me-1"></i> Supports embed iframes (Spotify, CodePen, Figma, YouTube), inline SVG vectors, or interactive HTML components.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Caption / Description (Optional)</label>
+            <input type="text" class="form-control" id="field_caption" value="${escapeHTML(d.caption || '')}" placeholder="Optional caption or note below the widget...">
+          </div>`;
+
       default:
         return `<p>No settings available for this block.</p>`;
     }
@@ -1707,7 +1906,7 @@
   function generateFormFields(block) {
     const d = block.data || {};
     let fields = getBaseFormFields(block);
-    if (['cover', 'heading', 'text', 'quote', 'callout', 'caption', 'footer', 'splitMediaText', 'ctaBanner', 'navbar'].includes(block.type)) {
+    if (['cover', 'heading', 'text', 'quote', 'callout', 'caption', 'footer', 'splitMediaText', 'ctaBanner', 'navbar', 'mapEmbed', 'customWidget'].includes(block.type)) {
       fields += generateCustomStyleToggle(d);
     }
     return fields;
@@ -1835,6 +2034,22 @@
         data.ctaUrl = getVal('field_ctaUrl');
         data.style = getVal('field_style') || 'glass';
         data.sticky = document.getElementById('field_sticky')?.checked ?? true;
+        break;
+      case 'mapEmbed':
+        data.location = getVal('field_location');
+        data.provider = getVal('field_provider') || 'google';
+        data.customUrl = getVal('field_customUrl');
+        data.zoom = parseInt(getVal('field_zoom'), 10) || 13;
+        data.height = parseInt(getVal('field_height'), 10) || 420;
+        data.widthMode = getVal('field_widthMode') || 'standard';
+        data.caption = getVal('field_caption');
+        break;
+      case 'customWidget':
+        data.title = getVal('field_title');
+        data.cardStyle = getVal('field_cardStyle') || 'card';
+        data.maxWidth = getVal('field_maxWidth') || 'standard';
+        data.htmlContent = getVal('field_htmlContent');
+        data.caption = getVal('field_caption');
         break;
     }
 
@@ -2640,6 +2855,148 @@ ${blocksHtml}
     }
     [data-theme-mode="dark"] .story-nav-link:hover {
       color: #93c5fd;
+    }
+    /* Map Embed Styles */
+    .story-map-container {
+      margin: 3rem auto;
+      transition: max-width 0.2s ease;
+    }
+    .story-map-standard {
+      max-width: 780px;
+      padding: 0 1.25rem;
+    }
+    .story-map-wide {
+      max-width: 1040px;
+      padding: 0 1rem;
+    }
+    .story-map-bleed {
+      max-width: 100%;
+      padding: 0;
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .story-map-frame-wrapper {
+      position: relative;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background-color: #f1f5f9;
+    }
+    .story-map-bleed .story-map-frame-wrapper {
+      border-radius: 0;
+      border-left: 0;
+      border-right: 0;
+    }
+    .story-map-iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+    [data-theme-mode="dark"] .story-map-frame-wrapper {
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.4);
+      background-color: #1e293b;
+    }
+
+    /* Custom Widget Styles */
+    .story-widget-container {
+      margin: 3rem auto;
+      transition: max-width 0.2s ease;
+    }
+    .widget-width-compact {
+      max-width: 680px;
+      padding: 0 1.25rem;
+    }
+    .widget-width-standard {
+      max-width: 780px;
+      padding: 0 1.25rem;
+    }
+    .widget-width-wide {
+      max-width: 1040px;
+      padding: 0 1rem;
+    }
+    .widget-width-bleed {
+      max-width: 100%;
+      padding: 0;
+    }
+    .widget-card {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.05);
+    }
+    .widget-card-header {
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid #e2e8f0;
+      background-color: #f8fafc;
+      display: flex;
+      align-items: center;
+    }
+    .widget-card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #334155;
+    }
+    .widget-card-body {
+      padding: 1.25rem;
+    }
+    .widget-terminal-window {
+      background-color: #0f172a;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+      border: 1px solid #1e293b;
+    }
+    .widget-terminal-header {
+      padding: 0.75rem 1rem;
+      background-color: #1e293b;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .terminal-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .terminal-dots .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-red { background-color: #ef4444; }
+    .dot-yellow { background-color: #f59e0b; }
+    .dot-green { background-color: #10b981; }
+    .terminal-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+    .widget-terminal-body {
+      padding: 1.5rem;
+      color: #e2e8f0;
+    }
+    .widget-raw-container {
+      width: 100%;
+    }
+    [data-theme-mode="dark"] .widget-card {
+      background-color: #111827;
+      border-color: #1f2937;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    [data-theme-mode="dark"] .widget-card-header {
+      background-color: #1a2234;
+      border-bottom-color: #1f2937;
+    }
+    [data-theme-mode="dark"] .widget-card-title {
+      color: #e2e8f0;
     }
     @media (max-width: 768px) {
       .story-two-col-grid { grid-template-columns: 1fr; }
