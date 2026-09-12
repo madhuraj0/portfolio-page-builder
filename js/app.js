@@ -103,6 +103,16 @@
       }
     },
     {
+      id: 'blk_toc',
+      type: 'toc',
+      data: {
+        title: 'Story Chapters & Field Dispatches',
+        subtitle: 'Jump directly to key locations and field observations',
+        style: 'card',
+        includeSubheadings: true
+      }
+    },
+    {
       id: 'blk_2',
       type: 'heading',
       data: {
@@ -163,6 +173,19 @@
       }
     },
     {
+      id: 'blk_ba',
+      type: 'beforeAfter',
+      data: {
+        beforeUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80',
+        afterUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=80',
+        beforeLabel: 'Summer Thaw',
+        afterLabel: 'Winter Frost',
+        initialSplit: 50,
+        widthMode: 'wide',
+        caption: 'Seasonal transformation of the high Arctic valley: summer runoff vs winter glacier freeze.'
+      }
+    },
+    {
       id: 'blk_8',
       type: 'quote',
       data: {
@@ -214,6 +237,41 @@
         githubUrl: 'https://github.com',
         twitterUrl: 'https://twitter.com',
         email: 'alex@example.com'
+      }
+    },
+    {
+      id: 'blk_faq',
+      type: 'accordion',
+      data: {
+        title: 'Expedition Methodology & FAQs',
+        subtitle: 'Frequently asked questions regarding field gear, environmental ethics, and image rights',
+        itemsText: 'Leave No Trace Principles | All camps were established on durable snow surfaces or gravel beds with zero environmental footprint.\nCamera & Optical Gear | Medium-format film bodies, weather-sealed primes, and solar battery storage kits.\nPrint Licensing & Archival Proofs | Museum-grade pigment prints available upon direct inquiry below.',
+        flush: false
+      }
+    },
+    {
+      id: 'blk_test',
+      type: 'testimonial',
+      data: {
+        quote: 'Alex\'s Arctic field dispatches represent a benchmark in contemporary environmental photojournalism.',
+        author: 'Dr. Evelyn Vance',
+        role: 'Senior Curator',
+        company: 'Nordic Geographic Institute',
+        rating: 5,
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+        layout: 'card'
+      }
+    },
+    {
+      id: 'blk_contact',
+      type: 'contactForm',
+      data: {
+        title: 'Get in Touch with Alex',
+        subtitle: 'Direct editorial commissions, gallery print requests, or field collaborations.',
+        endpointType: 'mailto',
+        recipient: 'alex@example.com',
+        formspreeId: '',
+        submitLabel: 'Send Message'
       }
     },
     {
@@ -524,21 +582,49 @@
   }
 
   // --- Toast Notification ---
-  function showToast(message, icon = 'check-circle') {
+  function showToast(message, icon = 'check-circle', action = null, duration = 3000) {
     const container = document.getElementById('toastContainer');
     if (!container) return;
 
     const toast = document.createElement('div');
     toast.className = 'app-toast';
-    toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${escapeHTML(message)}</span>`;
-    container.appendChild(toast);
 
-    setTimeout(() => {
+    let actionBtnHTML = '';
+    if (action && action.label) {
+      actionBtnHTML = `<button type="button" class="app-toast-btn">${escapeHTML(action.label)}</button>`;
+    }
+
+    toast.innerHTML = `
+      <div class="d-flex align-items-center gap-2">
+        <i class="fas fa-${icon}"></i>
+        <span>${escapeHTML(message)}</span>
+      </div>
+      ${actionBtnHTML}
+    `;
+
+    let dismissed = false;
+    const dismiss = () => {
+      if (dismissed) return;
+      dismissed = true;
       toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
       toast.style.opacity = '0';
       toast.style.transform = 'translateY(10px)';
       setTimeout(() => toast.remove(), 300);
-    }, 2800);
+    };
+
+    if (action && action.onClick) {
+      const btn = toast.querySelector('.app-toast-btn');
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          action.onClick();
+          dismiss();
+        });
+      }
+    }
+
+    container.appendChild(toast);
+    setTimeout(dismiss, duration);
   }
 
   // Helper to get block-level custom typography and sizing classes
@@ -1031,6 +1117,200 @@
           </div>`;
       }
 
+      // 24. Before / After Comparison Slider
+      case 'beforeAfter': {
+        const beforeImg = sanitizeURL(d.beforeUrl || '');
+        const afterImg = sanitizeURL(d.afterUrl || '');
+        const beforeLabel = escapeHTML(d.beforeLabel || 'Before');
+        const afterLabel = escapeHTML(d.afterLabel || 'After');
+        const split = Math.max(0, Math.min(100, parseInt(d.initialSplit, 10) || 50));
+        const widthMode = ['standard', 'wide', 'bleed'].includes(d.widthMode) ? d.widthMode : 'standard';
+
+        return `
+          <div class="story-before-after-container ${widthMode}${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            <div class="before-after-slider" style="--split: ${split}%;">
+              <img class="ba-img ba-after" src="${afterImg}" alt="${afterLabel}" loading="lazy">
+              <img class="ba-img ba-before" src="${beforeImg}" alt="${beforeLabel}" loading="lazy">
+              <div class="ba-handle-bar">
+                <div class="ba-handle-circle"><i class="fas fa-arrows-left-right"></i></div>
+              </div>
+              <span class="ba-badge ba-badge-before">${beforeLabel}</span>
+              <span class="ba-badge ba-badge-after">${afterLabel}</span>
+              <input type="range" min="0" max="100" value="${split}" class="ba-range-input" aria-label="Before after comparison slider">
+            </div>
+            ${d.caption ? `
+              <figcaption class="story-caption mt-2 text-center">
+                ${renderInlineMarkdown(d.caption)}
+              </figcaption>` : ''}
+          </div>`;
+      }
+
+      // 25. Table of Contents / Outline Block
+      case 'toc': {
+        const title = escapeHTML(d.title || 'Table of Contents');
+        const subtitle = d.subtitle ? escapeHTML(d.subtitle) : '';
+        const style = d.style === 'minimal' ? 'minimal' : (d.style === 'numbered' ? 'numbered' : 'card');
+        const includeSubheadings = d.includeSubheadings !== false;
+
+        const headingBlocks = (state.blocks || []).filter(b => {
+          if (b.type === 'heading' && b.data && b.data.text) {
+            if (!includeSubheadings && (b.data.level === 'h2' || b.data.level === 'h3')) return false;
+            return true;
+          }
+          return false;
+        });
+
+        let itemsHtml = '';
+        if (headingBlocks.length === 0) {
+          itemsHtml = `<li class="text-muted small fst-italic py-2"><i class="fas fa-info-circle me-1"></i> Add Section Headings to your story to automatically populate this outline.</li>`;
+        } else {
+          itemsHtml = headingBlocks.map((hb, hIdx) => {
+            const level = hb.data.level || 'h1';
+            const indentClass = level === 'h3' ? 'indent-2' : (level === 'h2' ? 'indent-1' : '');
+            const cleanText = (hb.data.text || '').replace(/[#*_`]/g, '').trim();
+            const prefix = style === 'numbered'
+              ? `<span class="fw-bold me-1 text-primary">${hIdx + 1}.</span>`
+              : `<i class="fas fa-chevron-right small me-1 text-primary opacity-75"></i>`;
+            return `
+              <li class="story-toc-item ${indentClass}">
+                <a href="#${hb.id}" class="story-toc-link">
+                  ${prefix}
+                  <span>${escapeHTML(cleanText || 'Untitled Section')}</span>
+                </a>
+              </li>`;
+          }).join('\n');
+        }
+
+        return `
+          <div class="story-toc-container${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            <div class="story-toc-card ${style}">
+              <div class="story-toc-title"><i class="fas fa-list-ol me-2 text-primary"></i>${title}</div>
+              ${subtitle ? `<div class="story-toc-subtitle">${subtitle}</div>` : ''}
+              <ul class="story-toc-list mt-3">
+                ${itemsHtml}
+              </ul>
+            </div>
+          </div>`;
+      }
+
+      // 26. Accordion / FAQ Block
+      case 'accordion': {
+        const title = escapeHTML(d.title || 'Frequently Asked Questions');
+        const subtitle = d.subtitle ? escapeHTML(d.subtitle) : '';
+        const items = (d.itemsText || '').split('\n').map(line => {
+          const parts = line.split('|');
+          return {
+            title: (parts[0] || '').trim(),
+            content: (parts[1] || '').trim()
+          };
+        }).filter(item => item.title || item.content);
+
+        const itemsHtml = items.map((item, idx) => `
+          <details class="story-accordion-item" ${idx === 0 ? 'open' : ''}>
+            <summary class="story-accordion-summary">
+              <span>${escapeHTML(item.title || `Item ${idx + 1}`)}</span>
+              <i class="fas fa-chevron-right story-accordion-icon"></i>
+            </summary>
+            <div class="story-accordion-body">
+              ${renderInlineMarkdown(item.content || '')}
+            </div>
+          </details>
+        `).join('\n');
+
+        return `
+          <div class="story-accordion-container${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            ${title ? `
+              <div class="story-accordion-header-wrap">
+                <h3 class="story-accordion-title">${title}</h3>
+                ${subtitle ? `<div class="story-accordion-subtitle">${subtitle}</div>` : ''}
+              </div>` : ''}
+            <div class="story-accordion-list">
+              ${itemsHtml || '<p class="text-muted small fst-italic">No accordion panels defined.</p>'}
+            </div>
+          </div>`;
+      }
+
+      // 27. Client Testimonial & Review Cards
+      case 'testimonial': {
+        const quote = renderInlineMarkdown(d.quote || 'This project transformed our workflow completely.');
+        const author = escapeHTML(d.author || 'Reviewer Name');
+        const role = escapeHTML(d.role || '');
+        const company = escapeHTML(d.company || '');
+        const rating = Math.max(1, Math.min(5, parseInt(d.rating, 10) || 5));
+        const avatar = sanitizeURL(d.avatarUrl || '');
+        const layout = d.layout === 'minimal' ? 'minimal' : 'card';
+
+        const starsHtml = Array.from({ length: rating }).map(() => '<i class="fas fa-star"></i>').join('');
+
+        return `
+          <div class="story-testimonial-container${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            <div class="story-testimonial-card ${layout}">
+              <div class="story-testimonial-rating">${starsHtml}</div>
+              <blockquote class="story-testimonial-quote">&ldquo;${quote}&rdquo;</blockquote>
+              <div class="story-testimonial-author-wrap">
+                ${avatar ? `
+                  <img src="${avatar}" alt="${author}" class="story-testimonial-avatar" loading="lazy">
+                ` : `
+                  <div class="story-testimonial-avatar-placeholder">${author ? author.charAt(0).toUpperCase() : 'A'}</div>
+                `}
+                <div>
+                  <div class="story-testimonial-author-name">${author}</div>
+                  ${(role || company) ? `
+                    <div class="story-testimonial-author-role">${[role, company].filter(Boolean).join(' &middot; ')}</div>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      // 28. Contact / Inquiry Form Block
+      case 'contactForm': {
+        const title = escapeHTML(d.title || 'Start a Conversation');
+        const subtitle = d.subtitle ? escapeHTML(d.subtitle) : '';
+        const endpointType = d.endpointType === 'formspree' ? 'formspree' : 'mailto';
+        const recipient = escapeHTML(d.recipient || 'hello@example.com');
+        const formspreeId = escapeHTML(d.formspreeId || '');
+        const submitLabel = escapeHTML(d.submitLabel || 'Send Message');
+
+        const formAction = endpointType === 'formspree' && formspreeId
+          ? `action="https://formspree.io/f/${formspreeId}" method="POST"`
+          : `action="mailto:${recipient}" method="GET"`;
+
+        return `
+          <div class="story-contact-container${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            <div class="story-contact-card">
+              <h3 class="story-contact-title"><i class="fas fa-envelope me-2 text-primary"></i>${title}</h3>
+              ${subtitle ? `<p class="story-contact-subtitle">${subtitle}</p>` : ''}
+              <form class="story-contact-form" ${formAction} data-endpoint-type="${endpointType}" data-recipient="${recipient}">
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-muted">Your Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="Jane Doe" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-muted">Email Address</label>
+                    <input type="email" name="email" class="form-control" placeholder="jane@example.com" required>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold text-muted">Subject</label>
+                  <input type="text" name="subject" class="form-control" placeholder="Project Inquiry / Collaboration" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold text-muted">Your Message</label>
+                  <textarea name="message" class="form-control" rows="4" placeholder="Tell me about your project, timeline, or idea..." required></textarea>
+                </div>
+                <div class="text-end">
+                  <button type="submit" class="btn btn-primary px-4 py-2">
+                    <i class="fas fa-paper-plane me-1"></i> ${submitLabel}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>`;
+      }
+
       default:
         return `<div class="p-3 text-muted">Unknown block type</div>`;
     }
@@ -1068,6 +1348,7 @@
       const blockEl = document.createElement('div');
       blockEl.className = `story-block story-block-${block.type}`;
       blockEl.dataset.blockId = block.id;
+      blockEl.id = block.id;
 
       // Controls Bar (Drag, Move, Edit, Duplicate, Delete)
       const actionsBar = document.createElement('div');
@@ -1251,7 +1532,10 @@
         saveState();
         state.blocks.splice(index, 1);
         renderCanvas();
-        showToast('Block removed', 'trash-alt');
+        showToast('Block deleted', 'trash-alt', {
+          label: 'Undo',
+          onClick: () => undo()
+        }, 6000);
         break;
     }
   }
@@ -1509,6 +1793,49 @@
           maxWidth: 'standard',
           caption: 'Custom embedded interactive component'
         };
+      } else if (defaultType === 'beforeAfter') {
+        block.data = {
+          beforeUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1400&q=80',
+          afterUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1400&q=80',
+          beforeLabel: 'Before (Raw)',
+          afterLabel: 'After (Graded)',
+          initialSplit: 50,
+          widthMode: 'standard',
+          caption: 'Slide left or right to inspect before and after comparison'
+        };
+      } else if (defaultType === 'toc') {
+        block.data = {
+          title: 'Table of Contents',
+          subtitle: 'Jump to key sections in this story',
+          style: 'card',
+          includeSubheadings: true
+        };
+      } else if (defaultType === 'accordion') {
+        block.data = {
+          title: 'Frequently Asked Questions',
+          subtitle: 'Key project details, methodology, and client inquiries',
+          itemsText: 'Project Timeline & Milestones | The full project took 6 weeks from discovery and wireframing to final delivery.\nTechnology Stack & Architecture | Built using pure Vanilla JavaScript, responsive CSS, and modern web standards with zero dependencies.\nDeliverables & Source Code | Complete source code, design tokens, asset bundles, and standalone HTML exports.',
+          flush: false
+        };
+      } else if (defaultType === 'testimonial') {
+        block.data = {
+          quote: 'Working with this team transformed our entire digital identity. The storytelling and craft exceeded every milestone.',
+          author: 'Elena Rostova',
+          role: 'Head of Design',
+          company: 'Nordic Studio',
+          rating: 5,
+          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+          layout: 'card'
+        };
+      } else if (defaultType === 'contactForm') {
+        block.data = {
+          title: 'Start a Conversation',
+          subtitle: 'Have a project, commission, or inquiry? Reach out directly.',
+          endpointType: 'mailto',
+          recipient: 'hello@example.com',
+          formspreeId: '',
+          submitLabel: 'Send Message'
+        };
       }
     } else {
       block = state.blocks.find(b => b.id === blockId);
@@ -1532,8 +1859,11 @@
             saveState();
             state.blocks.splice(idx, 1);
             renderCanvas();
-            blockModalInstance.hide();
-            showToast(`${formatTypeName(block.type)} deleted`, 'trash-alt');
+            blockModalInstance?.hide();
+            showToast(`${formatTypeName(block.type)} deleted`, 'trash-alt', {
+              label: 'Undo',
+              onClick: () => undo()
+            }, 6000);
           }
         };
       }
@@ -1634,7 +1964,12 @@
       footer: 'Story Footer',
       navbar: 'Story Topbar / Navigation Header',
       mapEmbed: 'Interactive Map Embed',
-      customWidget: 'Custom Widget / Code Embed'
+      customWidget: 'Custom Widget / Code Embed',
+      beforeAfter: 'Before / After Comparison Slider',
+      toc: 'Table of Contents / Story Outline',
+      accordion: 'Interactive Accordion / FAQ',
+      testimonial: 'Client Testimonial & Review',
+      contactForm: 'Contact / Inquiry Form'
     };
     return names[type] || 'Story Block';
   }
@@ -2220,6 +2555,170 @@
             <input type="text" class="form-control" id="field_caption" value="${escapeHTML(d.caption || '')}" placeholder="Optional caption or note below the widget...">
           </div>`;
 
+      case 'beforeAfter':
+        return `
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Before (Original / Raw) Image URL</label>
+              ${generateImageInputGroup('field_beforeUrl', d.beforeUrl, 'https://...')}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">After (Final / Graded) Image URL</label>
+              ${generateImageInputGroup('field_afterUrl', d.afterUrl, 'https://...')}
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Before Label</label>
+              <input type="text" class="form-control" id="field_beforeLabel" value="${escapeHTML(d.beforeLabel || 'Before')}" placeholder="e.g. Wireframe, Raw, Before">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">After Label</label>
+              <input type="text" class="form-control" id="field_afterLabel" value="${escapeHTML(d.afterLabel || 'After')}" placeholder="e.g. Final UI, Graded, After">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Initial Split Position (%)</label>
+              <input type="number" class="form-control" id="field_initialSplit" min="0" max="100" value="${d.initialSplit != null ? d.initialSplit : 50}">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Width Layout</label>
+              <select class="form-select" id="field_widthMode">
+                <option value="standard" ${d.widthMode === 'standard' || !d.widthMode ? 'selected' : ''}>Standard (780px)</option>
+                <option value="wide" ${d.widthMode === 'wide' ? 'selected' : ''}>Wide Editorial (1040px)</option>
+                <option value="bleed" ${d.widthMode === 'bleed' ? 'selected' : ''}>Full Bleed (100% Edge-to-Edge)</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Caption / Comparison Notes (Optional)</label>
+              <input type="text" class="form-control" id="field_caption" value="${escapeHTML(d.caption || '')}" placeholder="Optional note beneath comparison...">
+            </div>
+          </div>`;
+
+      case 'toc':
+        return `
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Title</label>
+              <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || 'Table of Contents')}" placeholder="Table of Contents">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Subtitle (Optional)</label>
+              <input type="text" class="form-control" id="field_subtitle" value="${escapeHTML(d.subtitle || '')}" placeholder="Jump to key chapters">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Visual Style</label>
+              <select class="form-select" id="field_style">
+                <option value="card" ${d.style === 'card' || !d.style ? 'selected' : ''}>Card Boxed</option>
+                <option value="minimal" ${d.style === 'minimal' ? 'selected' : ''}>Minimal (Accent Bar)</option>
+                <option value="numbered" ${d.style === 'numbered' ? 'selected' : ''}>Numbered Index</option>
+              </select>
+            </div>
+            <div class="col-md-6 d-flex align-items-center pt-3">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="field_includeSubheadings" ${d.includeSubheadings !== false ? 'checked' : ''}>
+                <label class="form-check-label" for="field_includeSubheadings">Include Subheadings (H2, H3)</label>
+              </div>
+            </div>
+          </div>
+          <div class="alert alert-info py-2 small mb-0">
+            <i class="fas fa-wand-magic-sparkles me-1"></i> This block automatically scans all Section Headings in your story and creates clickable smooth-scroll jump links.
+          </div>`;
+
+      case 'accordion':
+        return `
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Section Header Title</label>
+              <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || 'Frequently Asked Questions')}" placeholder="FAQ or Project Specifications">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Subtitle / Description</label>
+              <input type="text" class="form-control" id="field_subtitle" value="${escapeHTML(d.subtitle || '')}" placeholder="Optional subheading...">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold d-flex justify-content-between">
+              <span>Accordion Panels (Format: Panel Title | Panel Content)</span>
+              <span class="text-muted small">One per line</span>
+            </label>
+            <textarea class="form-control font-monospace" id="field_itemsText" rows="6" placeholder="Panel Title | Detailed description or answer here...">${escapeHTML(d.itemsText || '')}</textarea>
+            <div class="form-text">Each line defines one collapsible item separated by a pipe <code>|</code>. Supports **markdown** in content.</div>
+          </div>`;
+
+      case 'testimonial':
+        return `
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Quote / Review</label>
+            <textarea class="form-control" id="field_quote" rows="3" placeholder="Working with this team was extraordinary...">${escapeHTML(d.quote || '')}</textarea>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Reviewer Name</label>
+              <input type="text" class="form-control" id="field_author" value="${escapeHTML(d.author || '')}" placeholder="e.g. Sarah Lin">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Role / Title</label>
+              <input type="text" class="form-control" id="field_role" value="${escapeHTML(d.role || '')}" placeholder="e.g. VP of Product">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Company / Studio</label>
+              <input type="text" class="form-control" id="field_company" value="${escapeHTML(d.company || '')}" placeholder="e.g. Nordic Labs">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-8">
+              <label class="form-label">Reviewer Avatar Image URL</label>
+              ${generateImageInputGroup('field_avatarUrl', d.avatarUrl, 'https://...')}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Star Rating</label>
+              <select class="form-select" id="field_rating">
+                <option value="5" ${d.rating == 5 || !d.rating ? 'selected' : ''}>5 Stars (★★★★★)</option>
+                <option value="4" ${d.rating == 4 ? 'selected' : ''}>4 Stars (★★★★☆)</option>
+                <option value="3" ${d.rating == 3 ? 'selected' : ''}>3 Stars (★★★☆☆)</option>
+              </select>
+            </div>
+          </div>`;
+
+      case 'contactForm':
+        return `
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Form Title</label>
+              <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || 'Start a Conversation')}" placeholder="Get in Touch">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Subtitle / Instructions</label>
+              <input type="text" class="form-control" id="field_subtitle" value="${escapeHTML(d.subtitle || '')}" placeholder="Send a message or inquiry...">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Delivery Endpoint</label>
+              <select class="form-select" id="field_endpointType" onchange="document.getElementById('formspreeRow')?.classList.toggle('d-none', this.value !== 'formspree'); document.getElementById('mailtoRow')?.classList.toggle('d-none', this.value !== 'mailto');">
+                <option value="mailto" ${d.endpointType === 'mailto' || !d.endpointType ? 'selected' : ''}>Direct Email (mailto:)</option>
+                <option value="formspree" ${d.endpointType === 'formspree' ? 'selected' : ''}>Formspree API (Backend Form)</option>
+              </select>
+            </div>
+            <div class="col-md-8" id="mailtoRow">
+              <label class="form-label fw-semibold">Recipient Email Address</label>
+              <input type="email" class="form-control" id="field_recipient" value="${escapeHTML(d.recipient || '')}" placeholder="yourname@domain.com">
+            </div>
+            <div class="col-md-8 ${d.endpointType === 'formspree' ? '' : 'd-none'}" id="formspreeRow">
+              <label class="form-label fw-semibold">Formspree Form ID</label>
+              <input type="text" class="form-control" id="field_formspreeId" value="${escapeHTML(d.formspreeId || '')}" placeholder="e.g. xpzgqkab">
+              <div class="form-text">Free form endpoint from formspree.io to receive submissions in your inbox.</div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Submit Button Label</label>
+            <input type="text" class="form-control" id="field_submitLabel" value="${escapeHTML(d.submitLabel || 'Send Message')}" placeholder="Send Message">
+          </div>`;
+
       default:
         return `<p>No settings available for this block.</p>`;
     }
@@ -2228,7 +2727,7 @@
   function generateFormFields(block) {
     const d = block.data || {};
     let fields = getBaseFormFields(block);
-    if (['cover', 'heading', 'text', 'quote', 'callout', 'caption', 'footer', 'splitMediaText', 'ctaBanner', 'navbar', 'mapEmbed', 'customWidget'].includes(block.type)) {
+    if (['cover', 'heading', 'text', 'quote', 'callout', 'caption', 'footer', 'splitMediaText', 'ctaBanner', 'navbar', 'mapEmbed', 'customWidget', 'beforeAfter', 'toc', 'accordion', 'testimonial', 'contactForm'].includes(block.type)) {
       fields += generateCustomStyleToggle(d);
     }
     return fields;
@@ -2373,6 +2872,43 @@
         data.htmlContent = getVal('field_htmlContent');
         data.caption = getVal('field_caption');
         break;
+      case 'beforeAfter':
+        data.beforeUrl = getVal('field_beforeUrl');
+        data.afterUrl = getVal('field_afterUrl');
+        data.beforeLabel = getVal('field_beforeLabel') || 'Before';
+        data.afterLabel = getVal('field_afterLabel') || 'After';
+        data.initialSplit = parseInt(getVal('field_initialSplit'), 10) || 50;
+        data.widthMode = getVal('field_widthMode') || 'standard';
+        data.caption = getVal('field_caption');
+        break;
+      case 'toc':
+        data.title = getVal('field_title') || 'Table of Contents';
+        data.subtitle = getVal('field_subtitle');
+        data.style = getVal('field_style') || 'card';
+        data.includeSubheadings = document.getElementById('field_includeSubheadings')?.checked !== false;
+        break;
+      case 'accordion':
+        data.title = getVal('field_title') || 'Frequently Asked Questions';
+        data.subtitle = getVal('field_subtitle');
+        data.itemsText = getVal('field_itemsText');
+        break;
+      case 'testimonial':
+        data.quote = getVal('field_quote');
+        data.author = getVal('field_author') || 'Reviewer';
+        data.role = getVal('field_role');
+        data.company = getVal('field_company');
+        data.rating = parseInt(getVal('field_rating'), 10) || 5;
+        data.avatarUrl = getVal('field_avatarUrl');
+        data.layout = getVal('field_layout') || 'card';
+        break;
+      case 'contactForm':
+        data.title = getVal('field_title') || 'Start a Conversation';
+        data.subtitle = getVal('field_subtitle');
+        data.endpointType = getVal('field_endpointType') || 'mailto';
+        data.recipient = getVal('field_recipient') || 'hello@example.com';
+        data.formspreeId = getVal('field_formspreeId');
+        data.submitLabel = getVal('field_submitLabel') || 'Send Message';
+        break;
     }
 
     const enableCustomStyle = document.getElementById('field_enableCustomStyle')?.checked || false;
@@ -2396,11 +2932,16 @@
     const accent = state.accentColor || '#2563eb';
     const mode = state.colorMode || 'light';
     const isDark = mode === 'dark';
-    const blocksHtml = state.blocks.map(b => renderBlockHTML(b)).join('\n');
+    const blocksHtml = state.blocks.map(b => `<div id="${b.id}" class="story-block story-block-${b.type}">\n${renderBlockHTML(b)}\n</div>`).join('\n');
     const overridesCss = `
   .story-snippet {
     --primary-color: ${accent};
     --primary-hover: ${accent};
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  .story-snippet * {
+    overflow-wrap: break-word;
   }
   .story-snippet .size-sm { font-size: 0.92rem !important; }
   .story-snippet .size-lg { font-size: 1.35rem !important; line-height: 1.75 !important; }
@@ -2478,7 +3019,7 @@ ${blocksHtml}
     const desc = escapeHTML(state.description || '');
     const author = escapeHTML(state.author || '');
     const ogImage = state.ogImage ? escapeHTML(state.ogImage) : '';
-    const content = state.blocks.map(b => renderBlockHTML(b)).join('\n');
+    const content = state.blocks.map(b => `<div id="${b.id}" class="story-block story-block-${b.type}">\n${renderBlockHTML(b)}\n</div>`).join('\n');
     return `<!DOCTYPE html>
 <html lang="en" data-theme-mode="${mode}">
 <head>
@@ -3324,10 +3865,123 @@ ${blocksHtml}
       .story-two-col-grid { grid-template-columns: 1fr; }
       .story-split-row, .story-split-row.media-right { flex-direction: column; gap: 1.5rem; }
     }
+
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      overflow-x: hidden;
+    }
+    .story-block,
+    .story-text,
+    .story-heading,
+    .story-lead,
+    .story-pullquote,
+    .story-callout,
+    .story-caption,
+    .author-bio-content,
+    .story-testimonial-quote {
+      overflow-wrap: break-word !important;
+      word-break: break-word !important;
+    }
+
+    /* Before / After Slider */
+    .story-before-after-container { margin: 2.5rem auto; position: relative; }
+    .story-before-after-container.standard { max-width: 780px; padding: 0 1.5rem; }
+    .story-before-after-container.wide { max-width: 1040px; padding: 0 1rem; }
+    .story-before-after-container.bleed { max-width: 100%; padding: 0; }
+    .before-after-slider { position: relative; width: 100%; overflow: hidden; border-radius: 8px; user-select: none; aspect-ratio: 16 / 9; background-color: #0f172a; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12); --split: 50%; }
+    .story-before-after-container.bleed .before-after-slider { border-radius: 0; }
+    .before-after-slider .ba-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+    .before-after-slider .ba-after { z-index: 1; }
+    .before-after-slider .ba-before { z-index: 2; clip-path: polygon(0 0, var(--split) 0, var(--split) 100%, 0 100%); }
+    .before-after-slider .ba-handle-bar { position: absolute; top: 0; bottom: 0; left: var(--split); width: 3px; margin-left: -1.5px; background: #ffffff; z-index: 3; pointer-events: none; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); }
+    .before-after-slider .ba-handle-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; background: #ffffff; color: #0f172a; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35); font-size: 0.85rem; }
+    .before-after-slider .ba-badge { position: absolute; bottom: 12px; padding: 0.25rem 0.6rem; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); color: #ffffff; border-radius: 4px; z-index: 4; pointer-events: none; }
+    .before-after-slider .ba-badge-before { left: 12px; }
+    .before-after-slider .ba-badge-after { right: 12px; }
+    .before-after-slider .ba-range-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: ew-resize; z-index: 5; -webkit-appearance: none; }
+
+    /* Table of Contents / Outline */
+    .story-toc-container { max-width: 780px; margin: 2rem auto; padding: 0 1.5rem; }
+    .story-toc-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem 1.75rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03); }
+    [data-theme-mode="dark"] .story-toc-card { background: #111827; border-color: #27344c; }
+    .story-toc-card.minimal { background: transparent; border: none; border-left: 3px solid var(--primary-color); border-radius: 0; padding: 0.75rem 0 0.75rem 1.25rem; box-shadow: none; }
+    .story-toc-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.25rem; color: var(--canvas-heading); }
+    .story-toc-subtitle { font-size: 0.88rem; color: #64748b; margin-bottom: 1rem; }
+    .story-toc-list { list-style: none; padding-left: 0; margin-bottom: 0; }
+    .story-toc-item { margin-bottom: 0.5rem; font-size: 0.95rem; }
+    .story-toc-item.indent-1 { padding-left: 1.25rem; font-size: 0.9rem; }
+    .story-toc-item.indent-2 { padding-left: 2.25rem; font-size: 0.85rem; }
+    .story-toc-link { color: var(--primary-color); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: transform 0.15s ease, color 0.15s ease; }
+    .story-toc-link:hover { text-decoration: underline; transform: translateX(4px); }
+
+    /* Accordion / FAQ */
+    .story-accordion-container { max-width: 780px; margin: 2rem auto; padding: 0 1.5rem; }
+    .story-accordion-header-wrap { margin-bottom: 1.25rem; }
+    .story-accordion-title { font-size: 1.4rem; font-weight: 700; color: var(--canvas-heading); margin-bottom: 0.25rem; }
+    .story-accordion-subtitle { font-size: 0.92rem; color: #64748b; }
+    .story-accordion-item { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 0.75rem; overflow: hidden; transition: box-shadow 0.2s ease, border-color 0.2s ease; }
+    [data-theme-mode="dark"] .story-accordion-item { background: #111827; border-color: #27344c; }
+    .story-accordion-item[open] { border-color: var(--primary-color); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05); }
+    .story-accordion-summary { padding: 1rem 1.25rem; font-weight: 600; font-size: 1.05rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; list-style: none; color: var(--canvas-heading); }
+    .story-accordion-summary::-webkit-details-marker { display: none; }
+    .story-accordion-icon { font-size: 0.85rem; color: #64748b; transition: transform 0.2s ease, color 0.2s ease; }
+    .story-accordion-item[open] .story-accordion-icon { transform: rotate(90deg); color: var(--primary-color); }
+    .story-accordion-body { padding: 0 1.25rem 1.15rem; font-size: 0.98rem; line-height: 1.7; color: var(--canvas-text); border-top: 1px solid #f1f5f9; padding-top: 0.85rem; }
+    [data-theme-mode="dark"] .story-accordion-body { border-top-color: #1f293d; }
+
+    /* Testimonial */
+    .story-testimonial-container { max-width: 840px; margin: 2.5rem auto; padding: 0 1.5rem; }
+    .story-testimonial-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2.25rem; position: relative; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); }
+    [data-theme-mode="dark"] .story-testimonial-card { background: #111827; border-color: #27344c; }
+    .story-testimonial-card.minimal { background: transparent; border: none; border-left: 4px solid var(--primary-color); border-radius: 0; padding: 1rem 0 1rem 1.75rem; box-shadow: none; }
+    .story-testimonial-rating { color: #f59e0b; font-size: 0.95rem; margin-bottom: 0.85rem; display: flex; gap: 3px; }
+    .story-testimonial-quote { font-size: 1.22rem; line-height: 1.75; font-style: italic; margin-bottom: 1.5rem; color: var(--canvas-heading); position: relative; }
+    .story-testimonial-author-wrap { display: flex; align-items: center; gap: 1rem; }
+    .story-testimonial-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color); flex-shrink: 0; }
+    .story-testimonial-avatar-placeholder { width: 52px; height: 52px; border-radius: 50%; background: var(--primary-color); color: #ffffff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0; }
+    .story-testimonial-author-name { font-weight: 700; font-size: 1.05rem; margin-bottom: 0.15rem; color: var(--canvas-heading); }
+    .story-testimonial-author-role { font-size: 0.88rem; color: #64748b; }
+
+    /* Contact Form */
+    .story-contact-container { max-width: 780px; margin: 3rem auto; padding: 0 1.5rem; }
+    .story-contact-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2.25rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); }
+    [data-theme-mode="dark"] .story-contact-card { background: #111827; border-color: #27344c; }
+    .story-contact-title { font-size: 1.5rem; font-weight: 700; color: var(--canvas-heading); margin-bottom: 0.35rem; }
+    .story-contact-subtitle { font-size: 0.95rem; color: #64748b; margin-bottom: 1.75rem; }
+    .story-contact-card .form-control { border-radius: 8px; padding: 0.75rem 1rem; }
+    [data-theme-mode="dark"] .story-contact-card .form-control { background-color: #1a2333; border-color: #2e3d55; color: #f1f5f9; }
+    [data-theme-mode="dark"] .story-contact-card .form-control:focus { background-color: #1a2333; border-color: var(--primary-color); color: #ffffff; }
   </style>
 </head>
 <body>
 ${content}
+<script>
+  // Interactive Before/After slider
+  document.addEventListener('input', function(e) {
+    if (e.target && e.target.classList.contains('ba-range-input')) {
+      var slider = e.target.closest('.before-after-slider');
+      if (slider) slider.style.setProperty('--split', e.target.value + '%');
+    }
+  });
+
+  // Contact form submission handling
+  document.addEventListener('submit', function(e) {
+    var form = e.target.closest('.story-contact-form');
+    if (!form) return;
+    var endpoint = form.dataset.endpointType;
+    if (endpoint === 'mailto') {
+      e.preventDefault();
+      var recipient = form.dataset.recipient || '';
+      var name = (form.querySelector('[name="name"]') || {}).value || '';
+      var subject = (form.querySelector('[name="subject"]') || {}).value || 'Inquiry';
+      var msg = (form.querySelector('[name="message"]') || {}).value || '';
+      var mailto = 'mailto:' + encodeURIComponent(recipient) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent('From: ' + name + '\\n\\n' + msg);
+      window.location.href = mailto;
+    }
+  });
+</script>
 </body>
 </html>`;
   }
@@ -3817,6 +4471,55 @@ ${content}
       if (btn) {
         e.preventDefault();
         openImageAssetPicker(btn.dataset.target, btn.dataset.mode || 'replace');
+      }
+    });
+
+    // Before / After Slider Interactive Range Input
+    document.addEventListener('input', (e) => {
+      if (e.target && e.target.classList.contains('ba-range-input')) {
+        const slider = e.target.closest('.before-after-slider');
+        if (slider) {
+          slider.style.setProperty('--split', `${e.target.value}%`);
+        }
+      }
+    });
+
+    // Table of Contents Link Smooth Scrolling on Canvas
+    document.addEventListener('click', (e) => {
+      const tocLink = e.target.closest('.story-toc-link');
+      if (tocLink) {
+        const href = tocLink.getAttribute('href');
+        if (href && href.startsWith('#')) {
+          e.preventDefault();
+          const targetEl = document.getElementById(href.substring(1));
+          if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            targetEl.classList.add('is-active');
+            setTimeout(() => targetEl.classList.remove('is-active'), 1500);
+          }
+        }
+      }
+    });
+
+    // Contact Form submission handling (simulation on editor canvas & mailto handling in preview)
+    document.addEventListener('submit', (e) => {
+      const form = e.target.closest('.story-contact-form');
+      if (form) {
+        if (!document.body.classList.contains('mode-preview')) {
+          e.preventDefault();
+          showToast('Form submission simulated in editor canvas!', 'paper-plane');
+          return;
+        }
+        const endpoint = form.dataset.endpointType;
+        if (endpoint === 'mailto') {
+          e.preventDefault();
+          const recipient = form.dataset.recipient || 'hello@example.com';
+          const name = form.querySelector('[name="name"]')?.value || '';
+          const subject = form.querySelector('[name="subject"]')?.value || 'Inquiry';
+          const msg = form.querySelector('[name="message"]')?.value || '';
+          const mailto = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`From: ${name}\n\n${msg}`)}`;
+          window.location.href = mailto;
+        }
       }
     });
   }
