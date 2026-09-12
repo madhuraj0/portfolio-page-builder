@@ -307,6 +307,7 @@
       bodyFont: 'Roboto',
       baseScale: '100'
     },
+    enableScrollAnimations: true,
     blocks: []
   };
 
@@ -482,6 +483,7 @@
             bodyFont: 'Roboto',
             baseScale: '100'
           },
+          enableScrollAnimations: parsed.enableScrollAnimations !== false,
           blocks: parsed.blocks || []
         };
         return true;
@@ -1321,6 +1323,166 @@
           </div>`;
       }
 
+      // 29. Standalone Social Links & Connect Bar
+      case 'socialLinks': {
+        const title = escapeHTML(d.title || '');
+        const subtitle = escapeHTML(d.subtitle || '');
+        const style = d.style || 'pills';
+        const align = d.alignment || 'center';
+        const rawLines = (d.linksText || '').split('\n').map(l => l.trim()).filter(Boolean);
+
+        const getPlatformMeta = (key, url) => {
+          const lower = (key || '').toLowerCase();
+          const target = (lower + ' ' + (url || '')).toLowerCase();
+          if (target.includes('github')) return { icon: 'fab fa-github', label: 'GitHub' };
+          if (target.includes('x.com') || target.includes('twitter') || lower === 'x') return { icon: 'fab fa-x-twitter', label: 'X (Twitter)' };
+          if (target.includes('linkedin')) return { icon: 'fab fa-linkedin-in', label: 'LinkedIn' };
+          if (target.includes('instagram')) return { icon: 'fab fa-instagram', label: 'Instagram' };
+          if (target.includes('youtube')) return { icon: 'fab fa-youtube', label: 'YouTube' };
+          if (target.includes('dribbble')) return { icon: 'fab fa-dribbble', label: 'Dribbble' };
+          if (target.includes('behance')) return { icon: 'fab fa-behance', label: 'Behance' };
+          if (target.includes('substack')) return { icon: 'fas fa-bookmark', label: 'Substack' };
+          if (target.includes('bluesky')) return { icon: 'fas fa-cloud', label: 'Bluesky' };
+          if (target.includes('mastodon')) return { icon: 'fab fa-mastodon', label: 'Mastodon' };
+          if (target.includes('threads')) return { icon: 'fab fa-threads', label: 'Threads' };
+          if (target.includes('medium')) return { icon: 'fab fa-medium', label: 'Medium' };
+          if (target.includes('mailto:') || lower === 'email' || target.includes('@')) return { icon: 'fas fa-envelope', label: 'Email' };
+          return { icon: 'fas fa-globe', label: 'Website' };
+        };
+
+        const linksHtml = rawLines.map(line => {
+          const parts = line.split('|').map(s => s.trim());
+          const key = parts[0] || 'link';
+          const url = sanitizeURL(parts[1] || '#');
+          const meta = getPlatformMeta(key, url);
+          const label = parts[2] || meta.label;
+          return `
+            <a href="${url}" target="_blank" rel="noopener noreferrer" class="social-badge social-badge-${style}" title="${escapeHTML(label)}">
+              <i class="${meta.icon}"></i>
+              ${style !== 'circles' ? `<span>${escapeHTML(label)}</span>` : ''}
+            </a>`;
+        }).join('');
+
+        return `
+          <div class="story-social-links-wrap align-${align}${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            ${title ? `<h4 class="story-social-title">${title}</h4>` : ''}
+            ${subtitle ? `<p class="story-social-subtitle">${subtitle}</p>` : ''}
+            <div class="story-social-items style-${style} justify-content-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}">
+              ${linksHtml || '<span class="text-muted small">No social links configured yet</span>'}
+            </div>
+          </div>`;
+      }
+
+      // 30. Hire Me / Availability & Booking Badge
+      case 'hireMe': {
+        const status = d.status || 'available';
+        const statusText = d.statusText || (status === 'available' ? 'Available for new client commissions' : status === 'selective' ? 'Considering select Q3/Q4 assignments' : 'Currently booked & taking waitlist');
+        const headline = d.headline || "Let's create something extraordinary together";
+        const subtext = d.subtext || 'Open for freelance assignments, art direction, and visual storytelling worldwide.';
+        const services = (d.services || '').split(',').map(s => s.trim()).filter(Boolean);
+        const primaryText = d.primaryBtnText || 'Get in Touch';
+        const primaryUrl = sanitizeURL(d.primaryBtnUrl || 'mailto:hello@example.com');
+        const secondaryText = d.secondaryBtnText || '';
+        const secondaryUrl = sanitizeURL(d.secondaryBtnUrl || '#');
+        const rateNote = d.rateNote || '';
+
+        const statusDotClass = status === 'available' ? 'status-dot-green' : status === 'selective' ? 'status-dot-yellow' : 'status-dot-purple';
+
+        return `
+          <div class="story-hire-me-wrap${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            <div class="story-hire-me-card">
+              <div class="story-hire-status-pill">
+                <span class="status-pulse-dot ${statusDotClass}"></span>
+                <span class="status-label-text">${escapeHTML(statusText)}</span>
+              </div>
+              <h2 class="story-hire-headline">${escapeHTML(headline)}</h2>
+              ${subtext ? `<p class="story-hire-subtext">${renderInlineMarkdown(subtext)}</p>` : ''}
+              ${services.length ? `
+                <div class="story-hire-services">
+                  ${services.map(s => `<span class="hire-service-tag">${escapeHTML(s)}</span>`).join('')}
+                </div>` : ''}
+              <div class="story-hire-actions">
+                <a href="${primaryUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary story-hire-btn-primary">
+                  <i class="fas fa-paper-plane me-2"></i>${escapeHTML(primaryText)}
+                </a>
+                ${secondaryText ? `
+                  <a href="${secondaryUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary story-hire-btn-secondary">
+                    ${escapeHTML(secondaryText)}
+                  </a>` : ''}
+              </div>
+              ${rateNote ? `<div class="story-hire-rate-note">${escapeHTML(rateNote)}</div>` : ''}
+            </div>
+          </div>`;
+      }
+
+      // 31. Verse / Poetry Block
+      case 'verse': {
+        const title = escapeHTML(d.title || '');
+        const stanzas = d.stanzas || '';
+        const author = escapeHTML(d.author || '');
+        const align = d.alignment || 'center';
+        const showOrnament = d.showOrnament !== false;
+        const style = d.style || 'classic';
+
+        const stanzaBlocks = stanzas.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+        const formattedStanzas = stanzaBlocks.map(block => {
+          const lines = block.split('\n').map(l => renderInlineMarkdown(l.trim())).join('<br>');
+          return `<div class="story-stanza">${lines}</div>`;
+        }).join('');
+
+        return `
+          <div class="story-verse-wrap align-${align} style-${style}${getCustomStyleClasses(d)}"${getCustomStyleInline(d)}>
+            ${showOrnament ? `<div class="story-verse-ornament">❦</div>` : ''}
+            ${title ? `<h3 class="story-verse-title">${title}</h3>` : ''}
+            <div class="story-verse-content">
+              ${formattedStanzas || '<div class="story-stanza text-muted fst-italic">Enter verses or poetic stanzas...</div>'}
+            </div>
+            ${author ? `<div class="story-verse-author">${author}</div>` : ''}
+          </div>`;
+      }
+
+      // 32. Read More / Expandable Narrative Fold Block
+      case 'readMore': {
+        const preview = d.previewText || '';
+        const full = d.fullText || '';
+        const expandBtn = d.expandBtnText || 'Read Full Story';
+        const collapseBtn = d.collapseBtnText || 'Show Less';
+        const fadeGradient = d.fadeGradient !== false;
+        const uniqueId = 'readmore_' + (block.id || Date.now());
+
+        return `
+          <div class="story-readmore-wrap${getCustomStyleClasses(d)}"${getCustomStyleInline(d)} id="${uniqueId}">
+            <div class="story-readmore-preview ${fadeGradient ? 'has-gradient' : ''}">
+              <p class="story-text mb-0">${renderInlineMarkdown(preview)}</p>
+            </div>
+            <div class="story-readmore-expanded d-none">
+              <div class="pt-3">
+                ${full.split('\n\n').map(p => `<p class="story-text">${renderInlineMarkdown(p)}</p>`).join('')}
+              </div>
+            </div>
+            <div class="story-readmore-toggle-row">
+              <button type="button" class="btn btn-outline-primary btn-sm story-readmore-btn" onclick="(function(btn){
+                var wrap = btn.closest('.story-readmore-wrap');
+                if(!wrap) return;
+                var exp = wrap.querySelector('.story-readmore-expanded');
+                var prev = wrap.querySelector('.story-readmore-preview');
+                var isExpanded = !exp.classList.contains('d-none');
+                if(isExpanded){
+                  exp.classList.add('d-none');
+                  if(prev) prev.classList.add('has-gradient');
+                  btn.innerHTML = '<i class=\\'fas fa-angles-down me-1\\'></i> ' + ${JSON.stringify(escapeHTML(expandBtn))};
+                } else {
+                  exp.classList.remove('d-none');
+                  if(prev) prev.classList.remove('has-gradient');
+                  btn.innerHTML = '<i class=\\'fas fa-angles-up me-1\\'></i> ' + ${JSON.stringify(escapeHTML(collapseBtn))};
+                }
+              })(this)">
+                <i class="fas fa-angles-down me-1"></i> ${escapeHTML(expandBtn)}
+              </button>
+            </div>
+          </div>`;
+      }
+
       default:
         return `<div class="p-3 text-muted">Unknown block type</div>`;
     }
@@ -1356,7 +1518,9 @@
 
     state.blocks.forEach((block, index) => {
       const blockEl = document.createElement('div');
-      blockEl.className = `story-block story-block-${block.type}`;
+      const isPreview = document.body.classList.contains('mode-preview');
+      const revealClass = isPreview && state.enableScrollAnimations !== false ? ' story-reveal' : '';
+      blockEl.className = `story-block story-block-${block.type}${revealClass}`;
       blockEl.dataset.blockId = block.id;
       blockEl.id = block.id;
 
@@ -1502,6 +1666,18 @@
     });
 
     updateReadingStats();
+
+    if (document.body.classList.contains('mode-preview') && state.enableScrollAnimations !== false && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.05, rootMargin: '0px 0px -30px 0px' });
+      canvas.querySelectorAll('.story-reveal').forEach(el => observer.observe(el));
+    }
   }
 
   // --- Block Actions Handler ---
@@ -1851,6 +2027,44 @@
           formspreeId: '',
           submitLabel: 'Send Message'
         };
+      } else if (defaultType === 'socialLinks') {
+        block.data = {
+          title: 'Connect & Follow',
+          subtitle: 'Find my latest work, field dispatches, and projects across the web',
+          style: 'pills',
+          alignment: 'center',
+          linksText: 'github | https://github.com/ | GitHub\nx | https://x.com/ | X (Twitter)\nlinkedin | https://linkedin.com/ | LinkedIn\ninstagram | https://instagram.com/ | Instagram\nemail | mailto:hello@example.com | Email'
+        };
+      } else if (defaultType === 'hireMe') {
+        block.data = {
+          status: 'available',
+          statusText: 'Available for new client commissions & collaborations',
+          headline: "Let's create something extraordinary together",
+          subtext: 'Open for freelance assignments, art direction, and visual storytelling worldwide.',
+          services: 'Editorial Direction, Photography, Web Design, Creative Development',
+          primaryBtnText: 'Get in Touch',
+          primaryBtnUrl: 'mailto:hello@example.com',
+          secondaryBtnText: 'View Rate Card & Services',
+          secondaryBtnUrl: '#',
+          rateNote: 'Typical project turnaround: 2–4 weeks · Worldwide remote & on-site'
+        };
+      } else if (defaultType === 'verse') {
+        block.data = {
+          title: 'The Silent Tide',
+          stanzas: "The ice does not speak of time,\nIt remembers in rings and blue shadows,\nWhere the water turns under the dark stone,\nAnd the light hesitates before sinking.\n\nWe stood on the gravel shore,\nBreath rising like smoke in the pine needles,\nWatching the sea turn to silver,\nAnd the silent birds circle home.",
+          author: '— Alex Bennett, Field Notebook IV',
+          alignment: 'center',
+          style: 'classic',
+          showOrnament: true
+        };
+      } else if (defaultType === 'readMore') {
+        block.data = {
+          previewText: "Beneath the glacier's sheer granite wall, our expedition made camp as dusk descended over the valley. The wind dropped to a faint whisper through the birch trees, and temperature gauges plunged into negative territory.\n\nWith our audio gear and field journals prepped, we catalogued the first signs of meltwater runoff along the southern moraine.",
+          fullText: "Over the subsequent seventy-two hours, the team conducted continuous core sampling across three distinct elevation zones. What emerged was an intricate portrait of seasonal adaptation: sub-surface currents flowing at unexpected velocities, microscopic algae blooming within crystal fissures, and historical striations documenting over four centuries of uninterrupted freeze-thaw cycles.\n\nLocal elders from the adjacent coastal settlement corroborated these findings, noting that the winter shelf had retreated by more than two kilometers in their lifetimes alone. Their oral histories, preserved over generations, provided crucial context that satellite telemetry had failed to capture.",
+          expandBtnText: 'Read Full Narrative',
+          collapseBtnText: 'Show Less',
+          fadeGradient: true
+        };
       }
     } else {
       block = state.blocks.find(b => b.id === blockId);
@@ -1984,7 +2198,11 @@
       toc: 'Table of Contents / Story Outline',
       accordion: 'Interactive Accordion / FAQ',
       testimonial: 'Client Testimonial & Review',
-      contactForm: 'Contact / Inquiry Form'
+      contactForm: 'Contact / Inquiry Form',
+      socialLinks: 'Social Links & Connect Bar',
+      hireMe: 'Hire Me / Availability & CTA',
+      verse: 'Poetry & Verse / Stanzas',
+      readMore: 'Expandable Narrative / Read More'
     };
     return names[type] || 'Story Block';
   }
@@ -2734,6 +2952,165 @@
             <input type="text" class="form-control" id="field_submitLabel" value="${escapeHTML(d.submitLabel || 'Send Message')}" placeholder="Send Message">
           </div>`;
 
+      case 'socialLinks':
+        return `
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Section Title</label>
+              <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || '')}" placeholder="Connect & Follow">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Subtitle</label>
+              <input type="text" class="form-control" id="field_subtitle" value="${escapeHTML(d.subtitle || '')}" placeholder="Where to find my work online...">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Badge Style</label>
+              <select class="form-select" id="field_style">
+                <option value="pills" ${d.style === 'pills' || !d.style ? 'selected' : ''}>Pills (Icon + Name)</option>
+                <option value="circles" ${d.style === 'circles' ? 'selected' : ''}>Circles (Icon Only)</option>
+                <option value="minimal" ${d.style === 'minimal' ? 'selected' : ''}>Minimal (Text + Underline)</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Alignment</label>
+              <select class="form-select" id="field_alignment">
+                <option value="center" ${d.alignment === 'center' || !d.alignment ? 'selected' : ''}>Centered</option>
+                <option value="left" ${d.alignment === 'left' ? 'selected' : ''}>Left-Aligned</option>
+                <option value="right" ${d.alignment === 'right' ? 'selected' : ''}>Right-Aligned</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold d-flex justify-content-between">
+              <span>Social Links (Format: platform | url | custom label)</span>
+              <span class="text-muted small">One per line</span>
+            </label>
+            <textarea class="form-control font-monospace" id="field_linksText" rows="6" placeholder="github | https://github.com/yourname | GitHub\nx | https://x.com/yourname | X\nlinkedin | https://linkedin.com/in/yourname | LinkedIn\nemail | mailto:yourname@example.com | Email">${escapeHTML(d.linksText || '')}</textarea>
+            <div class="form-text">Supported: <code>github</code>, <code>x</code>, <code>linkedin</code>, <code>instagram</code>, <code>youtube</code>, <code>dribbble</code>, <code>behance</code>, <code>substack</code>, <code>bluesky</code>, <code>threads</code>, <code>medium</code>, <code>email</code>, <code>website</code>.</div>
+          </div>`;
+
+      case 'hireMe':
+        return `
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Availability Status</label>
+              <select class="form-select" id="field_status">
+                <option value="available" ${d.status === 'available' || !d.status ? 'selected' : ''}>🟢 Available for new work</option>
+                <option value="selective" ${d.status === 'selective' ? 'selected' : ''}>🟡 Considering select Q3/Q4 projects</option>
+                <option value="booked" ${d.status === 'booked' ? 'selected' : ''}>🟣 Booked / Waitlist only</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Custom Status Label</label>
+              <input type="text" class="form-control" id="field_statusText" value="${escapeHTML(d.statusText || '')}" placeholder="e.g. Available for booking">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Main Headline</label>
+            <input type="text" class="form-control" id="field_headline" value="${escapeHTML(d.headline || '')}" placeholder="Let's create something extraordinary together" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Subtext / Value Proposition</label>
+            <textarea class="form-control" id="field_subtext" rows="2" placeholder="Open for freelance assignments, art direction, and visual storytelling...">${escapeHTML(d.subtext || '')}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Specialties / Services (Comma-separated)</label>
+            <input type="text" class="form-control" id="field_services" value="${escapeHTML(d.services || '')}" placeholder="Editorial Direction, Photography, Web Design, Creative Development">
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Primary Button Text</label>
+              <input type="text" class="form-control" id="field_primaryBtnText" value="${escapeHTML(d.primaryBtnText || 'Get in Touch')}" placeholder="Get in Touch">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Primary Button URL</label>
+              <input type="text" class="form-control" id="field_primaryBtnUrl" value="${escapeHTML(d.primaryBtnUrl || 'mailto:hello@example.com')}" placeholder="mailto:hello@example.com or https://...">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Secondary Button Text (Optional)</label>
+              <input type="text" class="form-control" id="field_secondaryBtnText" value="${escapeHTML(d.secondaryBtnText || '')}" placeholder="View Rate Card & Services">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Secondary Button URL</label>
+              <input type="text" class="form-control" id="field_secondaryBtnUrl" value="${escapeHTML(d.secondaryBtnUrl || '')}" placeholder="https://... or #contact">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Turnaround / Rate Note</label>
+            <input type="text" class="form-control" id="field_rateNote" value="${escapeHTML(d.rateNote || '')}" placeholder="e.g. Typical turnaround: 2–4 weeks · Remote & on-site">
+          </div>`;
+
+      case 'verse':
+        return `
+          <div class="row mb-3">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">Poem / Verse Title (Optional)</label>
+              <input type="text" class="form-control" id="field_title" value="${escapeHTML(d.title || '')}" placeholder="The Silent Tide">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Alignment</label>
+              <select class="form-select" id="field_alignment">
+                <option value="center" ${d.alignment === 'center' || !d.alignment ? 'selected' : ''}>Centered</option>
+                <option value="left" ${d.alignment === 'left' ? 'selected' : ''}>Left-Aligned</option>
+                <option value="indent" ${d.alignment === 'indent' ? 'selected' : ''}>Editorial Indent</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold d-flex justify-content-between">
+              <span>Stanzas & Lines (Separate stanzas with an empty line)</span>
+              <span class="text-muted small">Supports **bold** & *italic*</span>
+            </label>
+            <textarea class="form-control" id="field_stanzas" rows="8" placeholder="The ice does not speak of time,\nIt remembers in rings and blue shadows...\n\nWe stood on the gravel shore,\nBreath rising like smoke in the pine needles...">${escapeHTML(d.stanzas || '')}</textarea>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-8">
+              <label class="form-label">Author / Citation / Source</label>
+              <input type="text" class="form-control" id="field_author" value="${escapeHTML(d.author || '')}" placeholder="— Alex Bennett, Field Notebook IV">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Style</label>
+              <select class="form-select" id="field_style">
+                <option value="classic" ${d.style === 'classic' || !d.style ? 'selected' : ''}>Classic Serif</option>
+                <option value="italic" ${d.style === 'italic' ? 'selected' : ''}>Italicized</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="field_showOrnament" ${d.showOrnament !== false ? 'checked' : ''}>
+            <label class="form-check-label" for="field_showOrnament">Show decorative floral ornament (❦)</label>
+          </div>`;
+
+      case 'readMore':
+        return `
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Preview Narrative (Shown initially)</label>
+            <textarea class="form-control" id="field_previewText" rows="4" placeholder="Enter introductory paragraph...">${escapeHTML(d.previewText || '')}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Full Narrative (Revealed on click)</label>
+            <textarea class="form-control" id="field_fullText" rows="6" placeholder="Enter continuation of the narrative...">${escapeHTML(d.fullText || '')}</textarea>
+            <div class="form-text">Supports markdown formatting and multiple paragraphs (separated by blank lines).</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Expand Button Label</label>
+              <input type="text" class="form-control" id="field_expandBtnText" value="${escapeHTML(d.expandBtnText || 'Read Full Story')}" placeholder="Read Full Story">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Collapse Button Label</label>
+              <input type="text" class="form-control" id="field_collapseBtnText" value="${escapeHTML(d.collapseBtnText || 'Show Less')}" placeholder="Show Less">
+            </div>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="field_fadeGradient" ${d.fadeGradient !== false ? 'checked' : ''}>
+            <label class="form-check-label" for="field_fadeGradient">Show subtle gradient fade on preview text</label>
+          </div>`;
+
       default:
         return `<p>No settings available for this block.</p>`;
     }
@@ -2742,7 +3119,7 @@
   function generateFormFields(block) {
     const d = block.data || {};
     let fields = getBaseFormFields(block);
-    if (['cover', 'heading', 'text', 'quote', 'callout', 'caption', 'footer', 'splitMediaText', 'ctaBanner', 'navbar', 'mapEmbed', 'customWidget', 'beforeAfter', 'toc', 'accordion', 'testimonial', 'contactForm'].includes(block.type)) {
+    if (['cover', 'heading', 'text', 'quote', 'callout', 'caption', 'footer', 'splitMediaText', 'ctaBanner', 'navbar', 'mapEmbed', 'customWidget', 'beforeAfter', 'toc', 'accordion', 'testimonial', 'contactForm', 'socialLinks', 'hireMe', 'verse', 'readMore'].includes(block.type)) {
       fields += generateCustomStyleToggle(d);
     }
     return fields;
@@ -2924,6 +3301,40 @@
         data.formspreeId = getVal('field_formspreeId');
         data.submitLabel = getVal('field_submitLabel') || 'Send Message';
         break;
+      case 'socialLinks':
+        data.title = getVal('field_title');
+        data.subtitle = getVal('field_subtitle');
+        data.style = getVal('field_style') || 'pills';
+        data.alignment = getVal('field_alignment') || 'center';
+        data.linksText = getVal('field_linksText');
+        break;
+      case 'hireMe':
+        data.status = getVal('field_status') || 'available';
+        data.statusText = getVal('field_statusText');
+        data.headline = getVal('field_headline');
+        data.subtext = getVal('field_subtext');
+        data.services = getVal('field_services');
+        data.primaryBtnText = getVal('field_primaryBtnText') || 'Get in Touch';
+        data.primaryBtnUrl = getVal('field_primaryBtnUrl') || 'mailto:hello@example.com';
+        data.secondaryBtnText = getVal('field_secondaryBtnText');
+        data.secondaryBtnUrl = getVal('field_secondaryBtnUrl');
+        data.rateNote = getVal('field_rateNote');
+        break;
+      case 'verse':
+        data.title = getVal('field_title');
+        data.stanzas = getVal('field_stanzas');
+        data.author = getVal('field_author');
+        data.alignment = getVal('field_alignment') || 'center';
+        data.style = getVal('field_style') || 'classic';
+        data.showOrnament = document.getElementById('field_showOrnament')?.checked !== false;
+        break;
+      case 'readMore':
+        data.previewText = getVal('field_previewText');
+        data.fullText = getVal('field_fullText');
+        data.expandBtnText = getVal('field_expandBtnText') || 'Read Full Story';
+        data.collapseBtnText = getVal('field_collapseBtnText') || 'Show Less';
+        data.fadeGradient = document.getElementById('field_fadeGradient')?.checked !== false;
+        break;
     }
 
     const enableCustomStyle = document.getElementById('field_enableCustomStyle')?.checked || false;
@@ -2947,7 +3358,8 @@
     const accent = state.accentColor || '#2563eb';
     const mode = state.colorMode || 'light';
     const isDark = mode === 'dark';
-    const blocksHtml = state.blocks.map(b => `<div id="${b.id}" class="story-block story-block-${b.type}">\n${renderBlockHTML(b)}\n</div>`).join('\n');
+    const revealClass = state.enableScrollAnimations !== false ? ' story-reveal' : '';
+    const blocksHtml = state.blocks.map(b => `<div id="${b.id}" class="story-block story-block-${b.type}${revealClass}">\n${renderBlockHTML(b)}\n</div>`).join('\n');
     const overridesCss = `
   .story-snippet {
     --primary-color: ${accent};
@@ -3034,7 +3446,8 @@ ${blocksHtml}
     const desc = escapeHTML(state.description || '');
     const author = escapeHTML(state.author || '');
     const ogImage = state.ogImage ? escapeHTML(state.ogImage) : '';
-    const content = state.blocks.map(b => `<div id="${b.id}" class="story-block story-block-${b.type}">\n${renderBlockHTML(b)}\n</div>`).join('\n');
+    const revealClass = state.enableScrollAnimations !== false ? ' story-reveal' : '';
+    const content = state.blocks.map(b => `<div id="${b.id}" class="story-block story-block-${b.type}${revealClass}">\n${renderBlockHTML(b)}\n</div>`).join('\n');
     return `<!DOCTYPE html>
 <html lang="en" data-theme-mode="${mode}">
 <head>
@@ -3968,6 +4381,72 @@ ${blocksHtml}
     .story-contact-card .form-control { border-radius: 8px; padding: 0.75rem 1rem; }
     [data-theme-mode="dark"] .story-contact-card .form-control { background-color: #1a2333; border-color: #2e3d55; color: #f1f5f9; }
     [data-theme-mode="dark"] .story-contact-card .form-control:focus { background-color: #1a2333; border-color: var(--primary-color); color: #ffffff; }
+
+    /* Scroll Reveal Animations */
+    .story-reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1); will-change: opacity, transform; }
+    .story-reveal.revealed { opacity: 1 !important; transform: translateY(0) !important; }
+    @media (prefers-reduced-motion: reduce) { .story-reveal { opacity: 1 !important; transform: none !important; transition: none !important; } }
+
+    /* Social Links */
+    .story-social-links-wrap { max-width: 840px; margin: 2.5rem auto; padding: 0 1.5rem; }
+    .story-social-links-wrap.align-center { text-align: center; }
+    .story-social-links-wrap.align-left { text-align: left; }
+    .story-social-links-wrap.align-right { text-align: right; }
+    .story-social-title { font-size: 1.35rem; font-weight: 700; color: var(--canvas-heading); margin-bottom: 0.35rem; }
+    .story-social-subtitle { font-size: 0.95rem; color: #64748b; margin-bottom: 1.5rem; }
+    .story-social-items { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .social-badge { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none !important; font-weight: 600; font-size: 0.9rem; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); color: var(--canvas-text); }
+    .social-badge i { font-size: 1.1rem; }
+    .social-badge-pills { background: var(--canvas-surface); border: 1px solid var(--canvas-surface-border); padding: 0.5rem 1rem; border-radius: 9999px; }
+    .social-badge-pills:hover { background: var(--primary-color); border-color: var(--primary-color); color: #ffffff !important; transform: translateY(-2px); }
+    .social-badge-circles { width: 44px; height: 44px; border-radius: 50%; background: var(--canvas-surface); border: 1px solid var(--canvas-surface-border); display: inline-flex; align-items: center; justify-content: center; }
+    .social-badge-circles:hover { background: var(--primary-color); border-color: var(--primary-color); color: #ffffff !important; transform: translateY(-2px); }
+    .social-badge-minimal { padding: 0.35rem 0.65rem; border-bottom: 2px solid transparent; }
+    .social-badge-minimal:hover { color: var(--primary-color) !important; border-bottom-color: var(--primary-color); }
+    [data-theme-mode="dark"] .social-badge-pills, [data-theme-mode="dark"] .social-badge-circles { background: #111827; border-color: #27344c; color: #e2e8f0; }
+
+    /* Hire Me */
+    .story-hire-me-wrap { max-width: 860px; margin: 3rem auto; padding: 0 1.5rem; }
+    .story-hire-me-card { background: linear-gradient(135deg, rgba(37, 99, 235, 0.04) 0%, rgba(124, 58, 237, 0.04) 100%), var(--canvas-surface); border: 1px solid var(--canvas-surface-border); border-radius: 18px; padding: 2.5rem 2rem; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); }
+    [data-theme-mode="dark"] .story-hire-me-card { background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%), #111827; border-color: #27344c; }
+    .story-hire-status-pill { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--canvas-bg); border: 1px solid var(--canvas-surface-border); padding: 0.35rem 0.9rem; border-radius: 9999px; font-size: 0.84rem; font-weight: 600; color: var(--canvas-text); margin-bottom: 1.25rem; }
+    [data-theme-mode="dark"] .story-hire-status-pill { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+    .status-pulse-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+    .status-dot-green { background: #10b981; animation: pulseGreen 2s infinite; }
+    .status-dot-yellow { background: #f59e0b; animation: pulseYellow 2s infinite; }
+    .status-dot-purple { background: #8b5cf6; animation: pulsePurple 2s infinite; }
+    @keyframes pulseGreen { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+    @keyframes pulseYellow { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+    @keyframes pulsePurple { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); } }
+    .story-hire-headline { font-size: clamp(1.6rem, 3.2vw, 2.3rem); font-weight: 800; color: var(--canvas-heading); margin-bottom: 0.75rem; letter-spacing: -0.02em; }
+    .story-hire-subtext { font-size: 1.05rem; color: #64748b; max-width: 640px; margin: 0 auto 1.5rem auto; line-height: 1.65; }
+    .story-hire-services { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 1.75rem; }
+    .hire-service-tag { background: rgba(37, 99, 235, 0.08); color: var(--primary-color); border: 1px solid rgba(37, 99, 235, 0.18); font-size: 0.84rem; font-weight: 600; padding: 0.3rem 0.8rem; border-radius: 6px; }
+    [data-theme-mode="dark"] .hire-service-tag { background: rgba(37, 99, 235, 0.18); border-color: rgba(37, 99, 235, 0.35); color: #93c5fd; }
+    .story-hire-actions { display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem; }
+    .story-hire-btn-primary { padding: 0.65rem 1.6rem; font-weight: 600; border-radius: 8px; }
+    .story-hire-btn-secondary { padding: 0.65rem 1.4rem; font-weight: 500; border-radius: 8px; }
+    .story-hire-rate-note { font-size: 0.85rem; color: #64748b; margin-top: 0.75rem; }
+
+    /* Verse */
+    .story-verse-wrap { max-width: 680px; margin: 3.5rem auto; padding: 0 1.5rem; font-family: var(--story-font-heading, Georgia, serif); }
+    .story-verse-wrap.align-center { text-align: center; }
+    .story-verse-wrap.align-left { text-align: left; }
+    .story-verse-wrap.align-indent { padding-left: clamp(2rem, 8vw, 5rem); text-align: left; }
+    .story-verse-ornament { font-size: 1.4rem; color: var(--primary-color); opacity: 0.8; margin-bottom: 1rem; }
+    .story-verse-title { font-size: 1.35rem; font-weight: 700; color: var(--canvas-heading); margin-bottom: 1.75rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .story-verse-content { font-size: 1.15rem; line-height: 2; color: var(--canvas-text); font-style: italic; }
+    .story-verse-wrap.style-classic .story-verse-content { font-style: normal; }
+    .story-stanza { margin-bottom: 1.75rem; }
+    .story-verse-author { margin-top: 2rem; font-size: 0.95rem; color: #64748b; font-style: italic; }
+
+    /* Read More */
+    .story-readmore-wrap { max-width: 820px; margin: 2rem auto; padding: 0 1.5rem; }
+    .story-readmore-preview { position: relative; }
+    .story-readmore-preview.has-gradient::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50px; background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--canvas-bg)); pointer-events: none; }
+    [data-theme-mode="dark"] .story-readmore-preview.has-gradient::after { background: linear-gradient(to bottom, rgba(10, 15, 29, 0), var(--canvas-bg)); }
+    .story-readmore-toggle-row { margin-top: 1rem; text-align: center; }
+    .story-readmore-btn { font-weight: 600; padding: 0.45rem 1.15rem; border-radius: 9999px; }
   </style>
 </head>
 <body>
@@ -3996,6 +4475,27 @@ ${content}
       window.location.href = mailto;
     }
   });
+
+  // Scroll reveal observer
+  (function(){
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.05, rootMargin: '0px 0px -30px 0px' });
+      document.querySelectorAll('.story-reveal').forEach(function(el) {
+        observer.observe(el);
+      });
+    } else {
+      document.querySelectorAll('.story-reveal').forEach(function(el) {
+        el.classList.add('revealed');
+      });
+    }
+  })();
 </script>
 </body>
 </html>`;
@@ -4067,6 +4567,7 @@ ${content}
           btnToggleMode.innerHTML = '<i class="fas fa-edit me-1"></i> Edit Mode';
           btnToggleMode.classList.remove('btn-outline-secondary');
           btnToggleMode.classList.add('btn-primary');
+          renderCanvas();
           showToast('Switched to Preview Mode');
         } else {
           document.body.classList.remove('mode-preview');
@@ -4074,6 +4575,7 @@ ${content}
           btnToggleMode.innerHTML = '<i class="fas fa-eye me-1"></i> Preview';
           btnToggleMode.classList.remove('btn-primary');
           btnToggleMode.classList.add('btn-outline-secondary');
+          renderCanvas();
           showToast('Switched to Edit Mode');
         }
       });
@@ -4272,11 +4774,13 @@ ${content}
       const inputAuthor = document.getElementById('settingStoryAuthor');
       const inputDesc = document.getElementById('settingStoryDesc');
       const inputImage = document.getElementById('settingStoryImage');
+      const inputScroll = document.getElementById('settingScrollAnimations');
 
       if (inputTitle) inputTitle.value = state.title || '';
       if (inputAuthor) inputAuthor.value = state.author || '';
       if (inputDesc) inputDesc.value = state.description || '';
       if (inputImage) inputImage.value = state.ogImage || '';
+      if (inputScroll) inputScroll.checked = state.enableScrollAnimations !== false;
 
       updateSocialCardPreview();
       storySettingsModalInstance?.show();
@@ -4347,6 +4851,7 @@ ${content}
       state.author = document.getElementById('settingStoryAuthor')?.value.trim() || '';
       state.description = document.getElementById('settingStoryDesc')?.value.trim() || '';
       state.ogImage = document.getElementById('settingStoryImage')?.value.trim() || '';
+      state.enableScrollAnimations = document.getElementById('settingScrollAnimations')?.checked !== false;
 
       storySettingsModalInstance?.hide();
       showToast('Story settings & SEO metadata saved', 'gear');
