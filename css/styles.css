@@ -1411,7 +1411,8 @@ body.mode-preview .block-palette-bar {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 2000;
+  z-index: 99999 !important;
+  pointer-events: none !important;
 }
 
 .app-toast {
@@ -1428,25 +1429,36 @@ body.mode-preview .block-palette-bar {
   animation: toastFadeIn 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.12);
   min-width: 260px;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 100000 !important;
 }
 
 .app-toast-btn {
-  background: rgba(251, 191, 36, 0.2);
-  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.25);
+  border: 1px solid rgba(251, 191, 36, 0.5);
   color: #fde047;
-  font-weight: 600;
-  font-size: 0.82rem;
-  padding: 0.25rem 0.65rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.75rem;
   border-radius: 4px;
-  cursor: pointer;
+  cursor: pointer !important;
+  pointer-events: auto !important;
   white-space: nowrap;
   transition: all 0.15s ease;
+  position: relative;
+  z-index: 100001 !important;
+  line-height: 1.2;
 }
 
 .app-toast-btn:hover {
   background: #fde047;
   color: #0f172a;
   border-color: #fde047;
+}
+
+.app-toast-btn:active {
+  transform: scale(0.96);
 }
 
 @keyframes toastFadeIn {

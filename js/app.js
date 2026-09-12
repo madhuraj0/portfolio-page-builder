@@ -613,13 +613,23 @@
     };
 
     if (action && action.onClick) {
+      const handleAction = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        dismiss();
+        try {
+          action.onClick();
+        } catch (err) {
+          console.error('Toast action failed:', err);
+        }
+      };
+
       const btn = toast.querySelector('.app-toast-btn');
       if (btn) {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          action.onClick();
-          dismiss();
-        });
+        btn.addEventListener('click', handleAction);
+        btn.addEventListener('touchend', handleAction);
       }
     }
 
