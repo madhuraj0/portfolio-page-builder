@@ -1,75 +1,86 @@
 # Portfolio & Story Page Builder ✍️📸
 
-A lightweight, zero-build, in-browser visual page builder designed for creating editorial portfolios, photo essays, and long-form visual stories.
+A lightweight, in-browser visual page builder for crafting editorial portfolios, photo essays, and long-form visual stories. Zero build tools, zero frameworks, 100% client-side.
 
-Built with vanilla JavaScript, modern CSS, and Bootstrap 5. Works immediately with **GitHub Pages** with no setup or compilation required.
+👉 **[Live Demo](https://madhuraj0.github.io/portfolio-page-builder/)**
 
 ---
 
-## ✨ 20 Editorial & Portfolio Blocks
+## Highlights
+
+- **28+ Editorial Blocks**: Hero covers, full-bleed imagery, comparison sliders, interactive maps, audio players, FAQs, and custom code widgets.
+- **Drag-and-Drop Reordering**: Rearrange story blocks on the canvas with visual drop guides.
+- **Accidental Delete Protection**: Instant Undo snackbar and full undo/redo history (`Ctrl+Z` / `Ctrl+Y`).
+- **Curated Photo Picker & Local Dropzone**: Browse curated Unsplash photography or drop in local images (auto-compressed to web-ready 1600px).
+- **Curated & Custom Typography**: 5 editorial font pairings or custom Google Font pairings with base-scale control.
+- **Dark & Light Themes**: Real-time theme toggle with customizable brand accent colors.
+- **Instant Previews**: Toggle Desktop, Tablet, and Mobile viewports, or open a live standalone preview in a new browser tab.
+- **Zero-Dependency Exports**: Export self-contained HTML files with embedded fonts and SEO metadata, ready to host anywhere.
+
+---
+
+## Quick Start
+
+1. **Add Blocks**: Click any block in the palette to append it to your story.
+2. **Reorder**: Grab the grip handle (`⠿`) on any block to drag it up or down.
+3. **Edit**: Double-click any block to open its settings and content editor.
+4. **Choose Photos**: Click **Choose...** on image fields to pick curated photos or upload local files.
+5. **Preview & Export**: Use **Export > Open Live Preview in New Tab** to preview full-screen, or **Download as .html** to publish.
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+| :--- | :--- |
+| `Ctrl` / `Cmd` + `Z` | Undo last change |
+| `Ctrl` / `Cmd` + `Y` | Redo change |
+| `Double Click` on block | Quick Edit block modal |
+| `Drag Handle` (`⠿`) | Drag to reorder block |
+
+---
+
+## Block Directory
 
 ### 📸 Media
-1. **Cover Hero**: Full-bleed hero banner with title, tagline, byline, dateline, and adjustable dark overlay.
-2. **Wide Photo**: High-resolution centered photograph with caption.
-3. **Bleed Photo**: Edge-to-edge full-bleed immersive imagery.
-4. **2-Col Photos**: Side-by-side photo comparison or dual-photo pairing.
-5. **Photo Gallery**: Responsive 2, 3, or 4-column photo grid.
-6. **Web Embed**: Responsive 16:9 frame for YouTube, Vimeo, Google Drive preview, or maps.
-7. **Audio Player**: Minimalist audio card for field recordings, interviews, or music tracks.
+- **Cover Hero**: Full-bleed hero banner with title, tagline, byline, dateline, and image or ambient video background.
+- **Before / After Slider**: Draggable image comparison slider with custom labels and width options.
+- **Wide Photo**: Centered editorial photograph with caption.
+- **Bleed Photo**: Edge-to-edge full-width imagery.
+- **2-Col Photos**: Side-by-side dual photograph comparison.
+- **Photo Gallery**: Responsive 2, 3, or 4-column photo grid.
+- **Web Embed**: 16:9 responsive frame for YouTube, Vimeo, or web embeds.
+- **Audio Player**: Audio card for field recordings, interviews, or podcasts.
+- **Map Embed**: Interactive Google Maps or OpenStreetMap embed with custom zoom levels.
+- **Code Widget**: Custom HTML, SVG vectors, CodePen, or iframe embeds with card or terminal frames.
 
-### ✍️ Narrative & Structure
-8. **Section Heading**: Editorial serif typography across H1, H2, and H3 levels.
-9. **Paragraph Text**: Multi-paragraph narrative storytelling.
-10. **Split Media + Text**: 50/50 responsive split with image and narrative side-by-side.
-11. **Pull Quote**: Large editorial quote with attribution.
-12. **Callout Box**: Styled accent box with color themes (`Info`, `Note`, `Tip`, `Warning`).
-13. **Section Divider**: Hairline rule, editorial asterisks (`* * *`), dots (`• • •`), or custom spacing.
+### ✍️ Narrative
+- **Table of Contents / Outline**: Auto-scans document headings to build a smooth-scrolling jump index.
+- **Section Heading**: Editorial headings across H1, H2, and H3.
+- **Paragraph Text**: Narrative text with markdown formatting and overflow containment.
+- **Split Media + Text**: 50/50 responsive split pairing imagery with narrative text.
+- **Pull Quote**: Large quote callout with source citation.
+- **Callout Box**: Styled aside box (`Info`, `Note`, `Tip`, `Warning`, `Accent`).
+- **Interactive Accordion / FAQ**: Collapsible panels for project breakdowns or FAQs.
+- **Section Divider**: Hairline rule, editorial asterisks (`* * *`), or spaced dots.
 
-### 🌟 Profile & Impact
-14. **Big Stats**: Key metric highlights with large numbers and subtitles.
-15. **Timeline**: Vertical milestone timeline with dates, titles, and descriptions.
-16. **Skills / Tech Pills**: Tag pills for tools, cameras, and technical skills.
-17. **Author Bio**: Creator card with avatar, role, bio paragraph, and social links.
-18. **CTA Banner**: High-impact call-to-action banner with headline and action button.
-19. **Standalone Caption**: Italicized centered commentary note.
-20. **Story Footer**: Clean closing credits and copyright.
-
----
-
-## 🛠️ Editor Features
-
-- **Curated Typography Themes**:
-  - **Editorial Classic**: *Playfair Display* (Headings) + *Roboto* (Body)
-  - **Modern Studio**: *Plus Jakarta Sans* (Headings) + *Inter* (Body)
-  - **Literary Book**: *Lora* (Headings) + *Merriweather* (Body)
-  - **Creative Avant-Garde**: *Space Grotesk* (Headings) + *DM Sans* (Body)
-  - **Minimal Mono**: *JetBrains Mono* (Headings) + *Inter* (Body)
-- **Modal Form Editing**: Zero intrusive browser prompts. Dedicated input fields, sliders, and live options.
-- **Block Controls**: Move Up, Move Down, Edit, Duplicate, and Delete any block with one click.
-- **History (Undo / Redo)**: Full keyboard shortcut support (`Ctrl+Z` / `Ctrl+Y`).
-- **Responsive Viewport Previews**: Toggle Desktop, Tablet (768px), and Mobile (400px) frames directly in the builder.
-- **Preview vs. Edit Mode**: Experience the final article cleanly without builder controls.
-- **Auto-Save**: Changes automatically save to browser `localStorage`.
-- **Clean HTML & JSON Exports**:
-  - **Copy Full Page HTML**: Complete standalone HTML with custom typography bundled.
-  - **Download as .html File**: Download `story-page.html` ready to host or open.
-  - **Copy Snippet (Self-Contained Fonts)**: Includes scoped `@import` so custom fonts render everywhere (WordPress, Ghost, Substack, Medium).
-  - **Copy Snippet (Inherit Blog Fonts)**: Clean markup without external fonts that seamlessly blends into your existing blog typography.
-  - **Save / Open Project (JSON)**: Re-open and edit projects anytime.
-- **Built-in XSS Protection**: All user inputs and embedded URLs are safely sanitized.
+### 🌟 Structure & Profile
+- **Story Topbar / Navbar**: Sticky or static navigation bar with logo, jump links, and CTA button.
+- **Client Testimonial**: Review card with 1–5 star ratings, quote, reviewer avatar, and company.
+- **Big Stats**: Key numerical highlights and metric callouts.
+- **Timeline**: Milestone timeline with dates, titles, and descriptions.
+- **Skills Pills**: Tag pills for technologies, cameras, or capabilities.
+- **Author Bio**: Profile card with avatar, role, bio, and social links.
+- **Contact Form**: Responsive inquiry form supporting direct `mailto:` or Formspree API.
+- **CTA Banner**: Call-to-action banner with headline and button.
+- **Standalone Caption**: Centered editorial note or italic commentary.
+- **Story Footer**: Closing copyright and colophon credits.
 
 ---
 
-## 🚀 Live Demo on GitHub Pages
+## Local Development
 
-Check out the live deployment:  
-👉 **[https://madhuraj0.github.io/portfolio-page-builder/](https://madhuraj0.github.io/portfolio-page-builder/)**
-
----
-
-## 💻 Local Usage
-
-Simply clone and open `index.html` in any modern web browser:
+No build steps, package managers, or compilers needed:
 
 ```bash
 git clone https://github.com/madhuraj0/portfolio-page-builder.git
@@ -77,8 +88,10 @@ cd portfolio-page-builder
 python3 -m http.server 8000
 ```
 
+Open `http://localhost:8000` in any modern web browser.
+
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the [MIT License](LICENSE).
+MIT License. Free for personal and commercial use.
