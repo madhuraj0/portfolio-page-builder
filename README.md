@@ -14,7 +14,9 @@
 ## Features
 
 - **No Sign-Up & Privacy-First**: Starts instantly in your browser; drafts auto-save to `localStorage` with zero backend or tracking.
-- **28+ Blocks**: Hero banners, photo galleries, before/after sliders, maps, audio, FAQs, and embeds.
+- **32+ Blocks**: Hero covers, photo galleries, before/after sliders, verse/poetry, social bars, hire me badges, maps, audio, and FAQs.
+- **Ambient Video Hero**: Loop background videos (MP4/WebM) or photos with customizable darkness overlays.
+- **Inter-Block Scroll Reveal**: Smooth fade-in-up animations powered by native `IntersectionObserver`.
 - **Drag & Drop**: Reorder blocks with visual drop guides.
 - **Undo / Redo**: Keyboard shortcuts (`Ctrl+Z` / `Ctrl+Y`) and instant delete undo snackbar.
 - **Photo Picker**: Curated Unsplash presets or client-side compressed local uploads.
@@ -48,9 +50,9 @@
 
 | Category | Blocks |
 | :--- | :--- |
-| **Media** | Cover Hero, Before/After Slider, Wide Photo, Bleed Photo, 2-Col Photos, Gallery, Audio Player, Web Embed, Map, Code Widget |
-| **Narrative** | Section Heading, Paragraph, Split Media + Text, Pull Quote, Callout Box, Accordion / FAQ, Divider, Table of Contents |
-| **Structure** | Topbar Navbar, Testimonial, Big Stats, Timeline, Skills Pills, Author Bio, Contact Form, CTA Banner, Caption, Footer |
+| **Media** | Cover Hero (Photo/Video), Before/After Slider, Wide Photo, Bleed Photo, 2-Col Photos, Gallery, Audio Player, Web Embed, Map, Code Widget |
+| **Narrative** | Section Heading, Paragraph, Split Media + Text, Pull Quote, Callout Box, Accordion / FAQ, Verse / Poetry, Read More Fold, Divider, Table of Contents |
+| **Structure** | Topbar Navbar, Hire Me / Availability, Social Links, Testimonial, Big Stats, Timeline, Skills Pills, Author Bio, Contact Form, CTA Banner, Caption, Footer |
 
 ---
 
