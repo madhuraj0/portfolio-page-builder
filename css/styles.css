@@ -2361,6 +2361,25 @@ body.mode-preview .block-palette-bar {
   color: #ffffff;
 }
 
+/* Help Modal Dark Mode */
+[data-theme-mode="dark"] #helpModal .modal-content {
+  background-color: #0d1322;
+  border-color: #27344c;
+}
+[data-theme-mode="dark"] #helpModal .help-card {
+  background-color: #161f33 !important;
+  border-color: #2e3c54 !important;
+  color: #f1f5f9;
+}
+[data-theme-mode="dark"] #helpModal .help-card .text-muted {
+  color: #94a3b8 !important;
+}
+[data-theme-mode="dark"] #helpModal kbd {
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  color: #60a5fa;
+}
+
 
 
 

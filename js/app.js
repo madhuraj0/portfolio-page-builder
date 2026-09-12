@@ -1736,6 +1736,7 @@
   let customTypographyModalInstance = null;
   let storySettingsModalInstance = null;
   let imageAssetPickerModalInstance = null;
+  let helpModalInstance = null;
 
   function initModal() {
     const modalEl = document.getElementById('blockEditModal');
@@ -1753,6 +1754,10 @@
     const imgPickerEl = document.getElementById('imageAssetPickerModal');
     if (imgPickerEl && window.bootstrap) {
       imageAssetPickerModalInstance = new bootstrap.Modal(imgPickerEl);
+    }
+    const helpModalEl = document.getElementById('helpModal');
+    if (helpModalEl && window.bootstrap) {
+      helpModalInstance = new bootstrap.Modal(helpModalEl);
     }
   }
 
@@ -4472,6 +4477,11 @@ ${content}
         e.preventDefault();
         openImageAssetPicker(btn.dataset.target, btn.dataset.mode || 'replace');
       }
+    });
+
+    // Quick Guide & Help modal
+    document.getElementById('btnOpenHelp')?.addEventListener('click', () => {
+      helpModalInstance?.show();
     });
 
     // Before / After Slider Interactive Range Input

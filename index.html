@@ -167,6 +167,11 @@
           <i class="fas fa-moon"></i>
         </button>
 
+        <!-- Quick Guide / Help Modal Trigger -->
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnOpenHelp" title="Quick Guide & Shortcuts">
+          <i class="fas fa-circle-question"></i>
+        </button>
+
         <!-- Story Info / SEO Settings -->
         <button type="button" class="btn btn-sm btn-outline-secondary edit-only" id="btnOpenStorySettings" title="Story Settings & Social Share SEO">
           <i class="fas fa-gear me-1"></i> Story Info
@@ -606,6 +611,73 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Quick Guide & Help -->
+  <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="helpModalTitle">
+            <i class="fas fa-circle-question me-2 text-primary"></i> Quick Guide & Shortcuts
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded border h-100 help-card">
+                <div class="fw-bold mb-1"><i class="fas fa-plus-circle me-1 text-primary"></i> Adding & Editing Blocks</div>
+                <div class="small text-muted">Click any block in the palette to add it. Double-click any block on the canvas to edit its text, imagery, or settings.</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded border h-100 help-card">
+                <div class="fw-bold mb-1"><i class="fas fa-grip-vertical me-1 text-primary"></i> Reordering & Undo Safety</div>
+                <div class="small text-muted">Drag the vertical grip handle (<i class="fas fa-grip-vertical"></i>) on any block to rearrange. If you delete a block by mistake, click <strong>Undo</strong> on the popup snackbar.</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded border h-100 help-card">
+                <div class="fw-bold mb-1"><i class="fas fa-images me-1 text-primary"></i> Photos & Asset Library</div>
+                <div class="small text-muted">Click <strong>Choose...</strong> on any image field to browse curated Unsplash categories or drop in local files (automatically web-optimized).</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 bg-light rounded border h-100 help-card">
+                <div class="fw-bold mb-1"><i class="fas fa-file-export me-1 text-primary"></i> Preview & Export</div>
+                <div class="small text-muted">Click <strong>Export &gt; Open Live Preview in New Tab</strong> to view your story unconstrained, or <strong>Download as .html</strong> for a standalone file ready to host anywhere.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 rounded border bg-light help-card">
+            <div class="fw-bold small text-uppercase text-muted mb-2"><i class="fas fa-keyboard me-1"></i> Keyboard Shortcuts</div>
+            <div class="row g-2 small">
+              <div class="col-sm-6 d-flex justify-content-between">
+                <span>Undo</span>
+                <kbd>Ctrl / Cmd + Z</kbd>
+              </div>
+              <div class="col-sm-6 d-flex justify-content-between">
+                <span>Redo</span>
+                <kbd>Ctrl / Cmd + Y</kbd>
+              </div>
+              <div class="col-sm-6 d-flex justify-content-between">
+                <span>Quick Edit Block</span>
+                <kbd>Double Click</kbd>
+              </div>
+              <div class="col-sm-6 d-flex justify-content-between">
+                <span>Reorder Block</span>
+                <kbd>Drag Handle</kbd>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary btn-sm px-3" data-bs-dismiss="modal">Got it</button>
         </div>
       </div>
     </div>
