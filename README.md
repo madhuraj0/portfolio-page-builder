@@ -1,13 +1,19 @@
-# Portfolio & Story Page Builder
+# Portfolio & Story Page Builder ✍️📸
 
-Lightweight, in-browser visual builder for editorial portfolios and photo stories. Pure HTML/CSS/JS with zero build steps.
+> **No-signup, in-browser visual page builder** for editorial portfolios, photo essays, and long-form stories. 100% client-side, zero build tools.
 
-**[Live Demo](https://madhuraj0.github.io/portfolio-page-builder/)**
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Try_Now_(No_Sign--Up)-2563eb?style=flat-square)](https://madhuraj0.github.io/portfolio-page-builder/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![Zero Build](https://img.shields.io/badge/Setup-Zero_Build_(Vanilla_JS)-orange?style=flat-square)](#)
+[![Privacy](https://img.shields.io/badge/Privacy-100%25_Local_Storage-purple?style=flat-square)](#)
+
+👉 **[Launch App in Browser](https://madhuraj0.github.io/portfolio-page-builder/)** *(No account or install required)*
 
 ---
 
 ## Features
 
+- **No Sign-Up & Privacy-First**: Starts instantly in your browser; drafts auto-save to `localStorage` with zero backend or tracking.
 - **28+ Blocks**: Hero banners, photo galleries, before/after sliders, maps, audio, FAQs, and embeds.
 - **Drag & Drop**: Reorder blocks with visual drop guides.
 - **Undo / Redo**: Keyboard shortcuts (`Ctrl+Z` / `Ctrl+Y`) and instant delete undo snackbar.

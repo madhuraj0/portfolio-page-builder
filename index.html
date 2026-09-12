@@ -3,12 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portfolio & Story Page Builder</title>
-  <meta name="description" content="A visual, distraction-free block page builder for editorial portfolios, photo essays, and long-form visual stories.">
+  <title>Portfolio & Story Page Builder — No Sign-Up In-Browser Visual Editor</title>
+  <meta name="description" content="Free, no-signup, in-browser visual page builder for editorial portfolios, photo essays, and long-form visual stories. 100% client-side, zero build tools.">
 
-  <!-- Google Fonts for Curated & Custom Typography Themes -->
+  <!-- Open Graph & Social Cards -->
+  <meta property="og:title" content="Portfolio & Story Page Builder — No Sign-Up In-Browser Visual Editor">
+  <meta property="og:description" content="Free, no-signup, in-browser visual page builder for editorial portfolios, photo essays, and long-form visual stories.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://madhuraj0.github.io/portfolio-page-builder/">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Portfolio & Story Page Builder — No Sign-Up In-Browser Visual Editor">
+  <meta name="twitter:description" content="Free, no-signup, in-browser visual page builder for editorial portfolios, photo essays, and long-form visual stories.">
+  <meta name="twitter:image" content="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80">
+
+  <!-- Resource Preconnects for Fast Asset Loading -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+  <link rel="dns-prefetch" href="https://images.unsplash.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@500;700&family=Lora:ital,wght@0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Montserrat:wght@500;700&family=Oswald:wght@500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@600;700;800&family=Roboto:wght@300;400;500;700&family=Source+Sans+3:wght@400;600&family=Space+Grotesk:wght@600;700&family=Syne:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Font Awesome Icons -->
@@ -621,9 +636,12 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="helpModalTitle">
-            <i class="fas fa-circle-question me-2 text-primary"></i> Quick Guide & Shortcuts
-          </h5>
+          <div>
+            <h5 class="modal-title mb-0" id="helpModalTitle">
+              <i class="fas fa-circle-question me-2 text-primary"></i> Quick Guide &amp; Shortcuts
+            </h5>
+            <small class="text-muted"><i class="fas fa-shield-halved me-1 text-success"></i> 100% in-browser &amp; private &middot; No sign-up needed &middot; Drafts auto-save locally</small>
+          </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
